@@ -3,7 +3,7 @@
  * All domain errors should extend this class
  */
 export class DomainError extends Error {
-    constructor(message) {
+    constructor(message: string) {
         super(message);
         this.name = this.constructor.name;
         Error.captureStackTrace(this, this.constructor);
@@ -15,7 +15,9 @@ export class DomainError extends Error {
  * Thrown when domain validation fails
  */
 export class ValidationError extends DomainError {
-    constructor(message, field) {
+    public readonly field?: string;
+
+    constructor(message: string, field?: string) {
         super(message);
         this.field = field;
     }
@@ -26,7 +28,10 @@ export class ValidationError extends DomainError {
  * Thrown when a domain entity is not found
  */
 export class NotFoundError extends DomainError {
-    constructor(entityName, identifier) {
+    public readonly entityName: string;
+    public readonly identifier: string;
+
+    constructor(entityName: string, identifier: string) {
         super(`${entityName} with identifier ${identifier} not found`);
         this.entityName = entityName;
         this.identifier = identifier;

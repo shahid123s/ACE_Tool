@@ -1,22 +1,25 @@
-import { CreateUser } from '../../../application/user/CreateUser.js';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { CreateUser, CreateUserRequest } from '../../../application/user/CreateUser.js';
 import { GetUser } from '../../../application/user/GetUser.js';
-import { InMemoryUserRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
+import { MongoUserRepository, userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 
 /**
  * User Controller
  * Handles HTTP requests and responses
  */
 export class UserController {
+    private userRepository: MongoUserRepository;
+
     constructor() {
         // Dependency injection: inject repository into use cases
-        this.userRepository = new InMemoryUserRepository();
+        this.userRepository = userRepository;
     }
 
     /**
      * Create user handler
      * POST /api/users
      */
-    async createUser(request, reply) {
+    async createUser(request: FastifyRequest<{ Body: CreateUserRequest }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
             const createUser = new CreateUser(this.userRepository);
             const user = await createUser.execute(request.body);
@@ -25,7 +28,7 @@ export class UserController {
                 success: true,
                 data: user,
             });
-        } catch (error) {
+        } catch (error: any) {
             request.log.error(error);
             return reply.status(400).send({
                 success: false,
@@ -38,7 +41,7 @@ export class UserController {
      * Get user handler
      * GET /api/users/:id
      */
-    async getUser(request, reply) {
+    async getUser(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
             const getUser = new GetUser(this.userRepository);
             const user = await getUser.execute(request.params.id);
@@ -47,7 +50,7 @@ export class UserController {
                 success: true,
                 data: user,
             });
-        } catch (error) {
+        } catch (error: any) {
             request.log.error(error);
             const statusCode = error.name === 'NotFoundError' ? 404 : 400;
             return reply.status(statusCode).send({
