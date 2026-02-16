@@ -1,12 +1,15 @@
-import { LoginUser } from '../../../application/auth/LoginUser.js';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { LoginUser, LoginRequest } from '../../../application/auth/LoginUser.js';
 import { InMemoryUserRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
 
 export class AuthController {
+    private userRepository: InMemoryUserRepository;
+
     constructor() {
         this.userRepository = new InMemoryUserRepository();
     }
 
-    async login(request, reply) {
+    async login(request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
             console.log(request.body, 'in authcontroller')
             const loginUser = new LoginUser(this.userRepository);
@@ -16,7 +19,7 @@ export class AuthController {
                 success: true,
                 data: result
             });
-        } catch (error) {
+        } catch (error: any) {
             console.log(error, 'in authcontroller')
             request.log.error(error);
             return reply.status(401).send({
@@ -26,7 +29,7 @@ export class AuthController {
         }
     }
 
-    async register(request, reply) {
+    async register(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
         // Implement register later
         return reply.status(501).send({ message: 'Not implemented' });
     }

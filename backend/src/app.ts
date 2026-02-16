@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import config from './config/env.js';
 import logger from './infrastructure/logger/index.js';
@@ -8,12 +8,9 @@ import authRoutes from './presentation/http/routes/authRoutes.js';
 /**
  * Create and configure Fastify app
  */
-export async function buildApp() {
+export async function buildApp(): Promise<FastifyInstance> {
     const fastify = Fastify({
-        // logger: {
-        //     // level: config.nodeEnv === 'production' ? 'info' : 'debug',
-        //     level: 'debug',
-        // }
+        logger: logger
     });
 
     // Register CORS

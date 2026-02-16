@@ -1,6 +1,19 @@
 import 'dotenv/config';
 
-export default {
+export interface Config {
+    port: string | number;
+    host: string;
+    nodeEnv: string;
+    database: {
+        uri: string;
+    };
+    jwt: {
+        secret: string;
+        expiresIn: string;
+    };
+}
+
+const config: Config = {
     port: process.env.PORT || 3000,
     host: process.env.HOST || '0.0.0.0',
     nodeEnv: process.env.NODE_ENV || 'development',
@@ -16,3 +29,5 @@ export default {
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
     },
 };
+
+export default config;
