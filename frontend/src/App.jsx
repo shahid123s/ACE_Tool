@@ -28,9 +28,9 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return children;
 };

@@ -19,7 +19,7 @@ export default function Login() {
         setLoading(true);
         const success = await login(email, password);
         if (success) {
-            // window.location.href = "/";
+            window.location.href = "/";
         }
         setLoading(false);
     };

@@ -1,19 +1,24 @@
-import { User } from '../../domain/user/User.js';
+import { User, UserDTO } from '../../domain/user/User.js';
+import { IUserRepository } from '../../domain/user/UserRepository.js';
+import { IUseCase } from '../interfaces.js';
+
+export interface CreateUserRequest {
+    name: string;
+    email: string;
+}
 
 /**
  * Create User Use Case
  */
-export class CreateUser {
-    constructor(userRepository) {
-        this.userRepository = userRepository;
-    }
+export class CreateUser implements IUseCase<CreateUserRequest, UserDTO> {
+    constructor(private readonly userRepository: IUserRepository) { }
 
     /**
      * Execute the use case
-     * @param {Object} userData - { name, email }
-     * @returns {Promise<Object>}
+     * @param {CreateUserRequest} userData - { name, email }
+     * @returns {Promise<UserDTO>}
      */
-    async execute(userData) {
+    async execute(userData: CreateUserRequest): Promise<UserDTO> {
         // Create domain entity (validation happens here)
         const user = new User({
             id: this.generateId(),
@@ -30,7 +35,7 @@ export class CreateUser {
     /**
      * Generate unique ID (in production, use UUID library)
      */
-    generateId() {
+    private generateId(): string {
         return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 }
