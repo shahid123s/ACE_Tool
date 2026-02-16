@@ -61,7 +61,38 @@ import {
 } from "recharts";
 
 // ─── Mock Data ───
-const students = [
+interface Student {
+    id: number;
+    name: string;
+    email: string;
+    department: string;
+    status: "active" | "inactive";
+    hoursThisWeek: number;
+    worklogs: number;
+    leetcode: number;
+}
+
+interface AdminConcern {
+    id: number;
+    user: string;
+    title: string;
+    priority: "high" | "medium" | "low";
+    status: "warning" | "pending" | "success";
+    date: string;
+}
+
+interface AdminRequest {
+    id: number;
+    user: string;
+    type: string;
+    desc: string;
+    status: "pending" | "success" | "error";
+    date: string;
+}
+
+// ... (Other interfaces as needed)
+
+const students: Student[] = [
     { id: 1, name: "John Doe", email: "john@ace.com", department: "Engineering", status: "active", hoursThisWeek: 38, worklogs: 16, leetcode: 847 },
     { id: 2, name: "Sarah Miller", email: "sarah@ace.com", department: "Design", status: "active", hoursThisWeek: 42, worklogs: 20, leetcode: 623 },
     { id: 3, name: "James Kim", email: "james@ace.com", department: "Engineering", status: "active", hoursThisWeek: 35, worklogs: 14, leetcode: 912 },
@@ -94,14 +125,14 @@ const leetcodeLeaderboard = [
     { rank: 5, name: "Olivia Brown", score: 678, solved: 132, streak: 10 },
 ];
 
-const adminConcerns = [
+const adminConcerns: AdminConcern[] = [
     { id: 1, user: "John Doe", title: "VPN access issue", priority: "high", status: "warning", date: "Feb 12" },
     { id: 2, user: "Sarah Miller", title: "Laptop overheating", priority: "medium", status: "pending", date: "Feb 11" },
     { id: 3, user: "Alex Rivera", title: "IDE license expired", priority: "low", status: "success", date: "Feb 10" },
     { id: 4, user: "Priya Patel", title: "Meeting room booking", priority: "medium", status: "warning", date: "Feb 10" },
 ];
 
-const adminRequests = [
+const adminRequests: AdminRequest[] = [
     { id: 1, user: "John Doe", type: "Hardware", desc: "External monitor request", status: "pending", date: "Feb 12" },
     { id: 2, user: "Sarah Miller", type: "Leave", desc: "Sick leave - 2 days", status: "pending", date: "Feb 11" },
     { id: 3, user: "James Kim", type: "Access", desc: "AWS console access", status: "pending", date: "Feb 11" },
@@ -128,9 +159,9 @@ const meetings = [
 const Admin = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [deptFilter, setDeptFilter] = useState("all");
-    const [respondDialog, setRespondDialog] = useState(null);
+    const [respondDialog, setRespondDialog] = useState<number | null>(null);
     const [meetingDialog, setMeetingDialog] = useState(false);
-    const [requestActions, setRequestActions] = useState({});
+    const [requestActions, setRequestActions] = useState<Record<number, string>>({});
 
     const filteredStudents = students.filter((s) => {
         const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -138,7 +169,7 @@ const Admin = () => {
         return matchesSearch && matchesDept;
     });
 
-    const handleRequestAction = (id, action) => {
+    const handleRequestAction = (id: number, action: string) => {
         setRequestActions((prev) => ({ ...prev, [id]: action }));
     };
 

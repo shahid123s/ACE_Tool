@@ -8,23 +8,12 @@ import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "./context/AuthContext";
-import { Navigate } from "react-router-dom";
 import { Toaster } from 'sonner';
-
-// Placeholders for now - we will uncomment as we restore/create them
-// import Attendance from "./pages/Attendance"; 
-// import Worklogs from "./pages/Worklogs";
-// import Reports from "./pages/Reports";
-// import BlogPosts from "./pages/BlogPosts";
-// import LeetCode from "./pages/LeetCode";
-// import Meetings from "./pages/Meetings";
-// import Concerns from "./pages/Concerns";
-// import Requests from "./pages/Requests";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { loading } = useAuth();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -32,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
   //   return <Navigate to="/login" replace />;
   // }
 
-  return children;
+  return <>{children}</>;
 };
 
 function App() {

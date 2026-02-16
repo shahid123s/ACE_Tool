@@ -41,30 +41,48 @@ api.interceptors.request.use(
 //     }
 // );
 
+export interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'user';
+    department?: string;
+}
+
+export interface AuthResponse {
+    token: string;
+    user: User;
+}
+
+export interface LoginCredentials {
+    email: string;
+    password: string;
+}
+
 export const authService = {
-    login: (credentials) => api.post('/auth/login', credentials),
-    register: (userData) => api.post('/auth/register', userData),
-    me: () => api.get('/auth/me'),
+    login: (credentials: LoginCredentials) => api.post<AuthResponse>('/auth/login', credentials),
+    register: (userData: any) => api.post<AuthResponse>('/auth/register', userData),
+    me: () => api.get<{ user: User }>('/auth/me'),
 };
 
 export const adminService = {
     getStats: () => api.get('/admin/stats'),
-    getStudents: (params) => api.get('/admin/students', { params }),
+    getStudents: (params: any) => api.get('/admin/students', { params }),
     getWorklogs: () => api.get('/admin/worklogs'),
     getLeetCodeLeaderboard: () => api.get('/admin/leetcode'),
     getMeetings: () => api.get('/admin/meetings'),
-    createMeeting: (data) => api.post('/admin/meetings', data),
+    createMeeting: (data: any) => api.post('/admin/meetings', data),
     getConcerns: () => api.get('/admin/concerns'),
-    respondToConcern: (id, response) => api.post(`/admin/concerns/${id}/respond`, { response }),
+    respondToConcern: (id: string | number, response: string) => api.post(`/admin/concerns/${id}/respond`, { response }),
     getRequests: () => api.get('/admin/requests'),
-    approveRequest: (id) => api.post(`/admin/requests/${id}/approve`),
-    rejectRequest: (id) => api.post(`/admin/requests/${id}/reject`),
+    approveRequest: (id: string | number) => api.post(`/admin/requests/${id}/approve`),
+    rejectRequest: (id: string | number) => api.post(`/admin/requests/${id}/reject`),
 };
 
 export const userService = {
     getDashboard: () => api.get('/user/dashboard'),
     getWorklogs: () => api.get('/user/worklogs'),
-    createWorklog: (data) => api.post('/user/worklogs', data),
+    createWorklog: (data: any) => api.post('/user/worklogs', data),
     getAttendance: () => api.get('/user/attendance'),
     clockIn: () => api.post('/user/attendance/clock-in'),
     clockOut: () => api.post('/user/attendance/clock-out'),

@@ -1,11 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService, User } from '../services/api';
 import { toast } from 'sonner';
 
-const AuthContext = createContext(null);
+interface AuthContextType {
+    user: User | null;
+    loading: boolean;
+    login: (email: string, password: string) => Promise<boolean>;
+    logout: () => void;
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+}
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -27,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []);
 
-    const login = async (email, password) => {
+    const login = async (email: string, password: string): Promise<boolean> => {
         try {
             const { data } = await authService.login({ email, password });
             console.log(data, 'debuggin  src/context/AuthContext.jsx');
@@ -37,7 +46,7 @@ export const AuthProvider = ({ children }) => {
             setUser(data.user);
             toast.success('Successfully logged in');
             return true;
-        } catch (error) {
+        } catch (error: any) {
             toast.error(error.response?.data?.message || 'Login failed');
             return false;
         }
@@ -51,12 +60,12 @@ export const AuthProvider = ({ children }) => {
         window.location.href = '/login';
     };
 
-    const value = {
+    const value: AuthContextType = {
         user,
         loading,
         login,
         logout,
-        isAuthenticated: true,
+        isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
     };
 

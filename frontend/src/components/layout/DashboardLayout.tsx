@@ -1,8 +1,13 @@
 import { AppSidebar } from "./AppSidebar";
 import { TopNav } from "./TopNav";
 import { BackgroundBlobs } from "@/components/shared/BackgroundBlobs";
+import { ReactNode } from "react";
 
-export function DashboardLayout({ children }) {
+interface DashboardLayoutProps {
+    children: ReactNode;
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <div className="flex min-h-screen w-full relative">
             <BackgroundBlobs />

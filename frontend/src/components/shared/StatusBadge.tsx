@@ -1,6 +1,11 @@
 import { cn } from "@/lib/utils";
 
-export function StatusBadge({ status, label }) {
+interface StatusBadgeProps {
+    status: "success" | "warning" | "error" | "pending";
+    label?: string;
+}
+
+export function StatusBadge({ status, label }: StatusBadgeProps) {
     const statusStyles = {
         success: "bg-primary/10 text-primary border-primary/20",
         warning: "bg-secondary/10 text-secondary border-secondary/20",
