@@ -1,14 +1,14 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CreateUser, CreateUserRequest } from '../../../application/user/CreateUser.js';
 import { GetUser } from '../../../application/user/GetUser.js';
-import { InMemoryUserRepository, userRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
+import { MongoUserRepository, userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 
 /**
  * User Controller
  * Handles HTTP requests and responses
  */
 export class UserController {
-    private userRepository: InMemoryUserRepository;
+    private userRepository: MongoUserRepository;
 
     constructor() {
         // Dependency injection: inject repository into use cases

@@ -1,11 +1,13 @@
 import { buildApp } from './app.js';
 import config from './config/env.js';
+import { connectDB } from './infrastructure/database/connection.js';
 
 /**
  * Start the server
  */
 async function start(): Promise<void> {
     try {
+        await connectDB();
         const app = await buildApp();
         const port = Number(config.port);
 

@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { LoginUser, LoginRequest } from '../../../application/auth/LoginUser.js';
-import { InMemoryUserRepository, userRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
+import { MongoUserRepository, userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 
 export class AuthController {
-    private userRepository: InMemoryUserRepository;
+    private userRepository: MongoUserRepository;
 
     constructor() {
         this.userRepository = userRepository;
