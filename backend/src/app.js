@@ -3,15 +3,17 @@ import cors from '@fastify/cors';
 import config from './config/env.js';
 import logger from './infrastructure/logger/index.js';
 import userRoutes from './presentation/http/routes/userRoutes.js';
+import authRoutes from './presentation/http/routes/authRoutes.js';
 
 /**
  * Create and configure Fastify app
  */
 export async function buildApp() {
     const fastify = Fastify({
-        logger: {
-            level: config.nodeEnv === 'production' ? 'info' : 'debug',
-        }
+        // logger: {
+        //     // level: config.nodeEnv === 'production' ? 'info' : 'debug',
+        //     level: 'debug',
+        // }
     });
 
     // Register CORS
@@ -19,8 +21,11 @@ export async function buildApp() {
         origin: true, // In production, specify allowed origins
     });
 
+    // Authentication routes 
+    await fastify.register(authRoutes, { prefix: '/api/auth' });
+
     // Register routes
-    await fastify.register(userRoutes, { prefix: '/api' });
+    await fastify.register(userRoutes, { prefix: '/api/users' });
 
     return fastify;
 }

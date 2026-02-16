@@ -14,6 +14,15 @@ export class UserRepository {
     }
 
     /**
+     * Find user by email
+     * @param {string} email
+     * @returns {Promise<User|null>}
+     */
+    async findByEmail(email) {
+        throw new Error('Method not implemented');
+    }
+
+    /**
      * Save user
      * @param {User} user - User entity
      * @returns {Promise<User>}

@@ -14,6 +14,8 @@ async function start() {
         });
 
         app.log.info(`Server listening on ${config.host}:${config.port}`);
+        console.log(`Server listening on ${config.host}:${config.port}`);
+        console.log(`Server running on http://localhost:${config.port}`)
     } catch (err) {
         console.error('Error starting server:', err);
         process.exit(1);

@@ -5,10 +5,12 @@ import { ValidationError } from '../errors/index.js';
  * Contains business logic and rules
  */
 export class User {
-    constructor({ id, name, email, createdAt }) {
+    constructor({ id, name, email, password, role, createdAt }) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.password = password; // Hashed password
+        this.role = role || 'user'; // user or admin
         this.createdAt = createdAt || new Date();
 
         this.validate();
@@ -54,6 +56,7 @@ export class User {
             id: this.id,
             name: this.name,
             email: this.email,
+            role: this.role,
             createdAt: this.createdAt,
         };
     }
