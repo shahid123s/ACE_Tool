@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CreateUser, CreateUserRequest } from '../../../application/user/CreateUser.js';
 import { GetUser } from '../../../application/user/GetUser.js';
-import { InMemoryUserRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
+import { InMemoryUserRepository, userRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
 
 /**
  * User Controller
@@ -12,7 +12,7 @@ export class UserController {
 
     constructor() {
         // Dependency injection: inject repository into use cases
-        this.userRepository = new InMemoryUserRepository();
+        this.userRepository = userRepository;
     }
 
     /**

@@ -17,7 +17,7 @@ export class InMemoryUserRepository extends UserRepository implements IUserRepos
             id: '1',
             name: 'Admin User',
             email: 'admin@ace.com',
-            password: '$2a$10$X7.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1.1',
+            password: '$2b$10$B1hZ1ZrFrqkvjYSVQ/1yeuWBb4xOrJMtdhX4ONZpjb7/N6uCg3bd2',
             role: 'admin',
             createdAt: new Date()
         });
@@ -47,3 +47,5 @@ export class InMemoryUserRepository extends UserRepository implements IUserRepos
         return this.users.delete(id);
     }
 }
+
+export const userRepository = new InMemoryUserRepository();

@@ -10,7 +10,9 @@ import authRoutes from './presentation/http/routes/authRoutes.js';
  */
 export async function buildApp(): Promise<FastifyInstance> {
     const fastify = Fastify({
-        logger: logger
+        logger: {
+            level: 'info'
+        }
     });
 
     // Register CORS

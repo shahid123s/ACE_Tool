@@ -1,12 +1,12 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { LoginUser, LoginRequest } from '../../../application/auth/LoginUser.js';
-import { InMemoryUserRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
+import { InMemoryUserRepository, userRepository } from '../../../infrastructure/database/InMemoryUserRepository.js';
 
 export class AuthController {
     private userRepository: InMemoryUserRepository;
 
     constructor() {
-        this.userRepository = new InMemoryUserRepository();
+        this.userRepository = userRepository;
     }
 
     async login(request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply): Promise<FastifyReply> {
