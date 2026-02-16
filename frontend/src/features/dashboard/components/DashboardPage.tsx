@@ -1,4 +1,4 @@
-import Card, { CardHeader, CardContent } from '../../../components/ui/Card';
+import Card, { CardHeader, CardContent } from '@/components/ui/card';
 
 export default function DashboardPage() {
     return (
