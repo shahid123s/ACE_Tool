@@ -3,7 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { BackgroundBlobs } from "@/components/shared/BackgroundBlobs";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Loader2 } from "lucide-react";
 
 export default function Login() {
