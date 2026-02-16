@@ -28,14 +28,29 @@ const chartData = [
     { name: "Sun", hours: 0 },
 ];
 
-const recentWorklogs = [
+interface Worklog {
+    id: number;
+    task: string;
+    hours: number;
+    date: string;
+    status: "success" | "pending" | "warning" | "error";
+}
+
+interface Meeting {
+    id: number;
+    title: string;
+    time: string;
+    host: string;
+}
+
+const recentWorklogs: Worklog[] = [
     { id: 1, task: "UI Dashboard design", hours: 3, date: "Today", status: "success" },
     { id: 2, task: "API Integration", hours: 2.5, date: "Today", status: "success" },
     { id: 3, task: "Bug fixing - Auth module", hours: 1.5, date: "Yesterday", status: "pending" },
     { id: 4, task: "Documentation update", hours: 1, date: "Yesterday", status: "success" },
 ];
 
-const upcomingMeetings = [
+const upcomingMeetings: Meeting[] = [
     { id: 1, title: "Sprint Review", time: "10:00 AM", host: "Sarah M." },
     { id: 2, title: "1-on-1 with Mentor", time: "2:30 PM", host: "James K." },
     { id: 3, title: "Team Standup", time: "Tomorrow 9:00 AM", host: "Team Lead" },

@@ -1,7 +1,17 @@
 import { cn } from "@/lib/utils";
 import { GlassCard } from "./GlassCard";
+import { LucideIcon } from "lucide-react";
 
-export function StatCard({ title, value, icon: Icon, trend, trendUp, delay = 0 }) {
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    icon?: LucideIcon;
+    trend?: string;
+    trendUp?: boolean;
+    delay?: number;
+}
+
+export function StatCard({ title, value, icon: Icon, trend, trendUp, delay = 0 }: StatCardProps) {
     const staggerClass = delay > 0 ? `stagger-${delay}` : "";
 
     return (
