@@ -17,7 +17,8 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // Register CORS
     await fastify.register(cors, {
-        origin: true, // In production, specify allowed origins
+        // origin: true, // In production, specify allowed origins
+        origin: '*' // For development
     });
 
     // Authentication routes 
