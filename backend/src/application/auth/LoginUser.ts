@@ -75,6 +75,15 @@ export class LoginUser implements IUseCase<LoginRequest, LoginResponse> {
 
         await this.refreshTokenRepository.save(refreshTokenEntity);
 
+        console.log(`resutl
+            
+            
+            
+            
+            
+            
+            `, user, accessToken, refreshTokenEntity)
+
         return {
             user: user.toObject(),
             accessToken,
