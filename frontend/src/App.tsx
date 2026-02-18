@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [data, error, dispatch]);
 
   if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-
+  console.log(isAuthenticated)
   // if (!isAuthenticated) {
   //   return <Navigate to="/login" replace />;
   // }

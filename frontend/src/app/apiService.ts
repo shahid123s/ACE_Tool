@@ -1,20 +1,44 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { User, AuthResponse, LoginCredentials } from '../services/api';
+import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import { User, AuthResponse, LoginCredentials } from './types';
+import { logout } from './authSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+const baseQuery = fetchBaseQuery({
+    baseUrl: API_BASE_URL,
+    prepareHeaders: (headers) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers.set('authorization', `Bearer ${token}`);
+        }
+        return headers;
+    },
+});
+
+const baseQueryWithReauth: BaseQueryFn<
+    string | FetchArgs,
+    unknown,
+    FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+    let result = await baseQuery(args, api, extraOptions);
+
+    // If you get a 401, logout the user
+    if (result.error && result.error.status === 401) {
+        // Prevent redirect loop if already on login page
+        if (!window.location.pathname.includes('/login')) {
+            api.dispatch(logout()); // Clear Redux state
+            // Optionally clear local storage if the reducer doesn't fully handle it (it does in our case)
+            // localStorage.removeItem('token');
+            // localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    }
+    return result;
+};
+
 export const apiService = createApi({
     reducerPath: 'api',
-    baseQuery: fetchBaseQuery({
-        baseUrl: API_BASE_URL,
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                headers.set('authorization', `Bearer ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: baseQueryWithReauth,
     tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request'],
     endpoints: (builder) => ({
         login: builder.mutation<AuthResponse, LoginCredentials>({
@@ -51,7 +75,6 @@ export const apiService = createApi({
         getUserDashboard: builder.query<any, void>({
             query: () => '/user/dashboard',
         }),
-        // We will add more endpoints here as we migrate from services/api.ts
     }),
 });
 
