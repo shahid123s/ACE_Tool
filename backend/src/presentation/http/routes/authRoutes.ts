@@ -8,10 +8,20 @@ const authController = new AuthController();
  * Authentication routes
  */
 const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
-    // Authentication routes
-    fastify.post('/login', (req: FastifyRequest<{ Body: LoginRequest }>, reply) => authController.login(req, reply));
-    fastify.post('/register', (req, reply) => authController.register(req, reply));
-    fastify.get('/me', (req, reply) => authController.getMe(req, reply))
+    // Login Route
+    fastify.post<{ Body: LoginRequest }>('/login', authController.login.bind(authController));
+
+    // Refresh Token Route
+    fastify.post('/refresh', authController.refresh.bind(authController));
+
+    // Logout Route
+    fastify.post('/logout', authController.logout.bind(authController));
+
+    // Register Route (Placeholder)
+    fastify.post('/register', authController.register.bind(authController));
+
+    // Get Me Route (Placeholder)
+    fastify.get('/me', authController.getMe.bind(authController));
 };
 
 export default authRoutes;
