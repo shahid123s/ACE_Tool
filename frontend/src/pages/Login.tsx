@@ -1,27 +1,32 @@
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { BackgroundBlobs } from "@/components/shared/BackgroundBlobs";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
+import { useLoginMutation } from "@/app/apiService";
+import { useAppDispatch } from "@/app/hooks";
+import { setCredentials } from "@/app/authSlice";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const [login, { isLoading }] = useLoginMutation();
+    const dispatch = useAppDispatch();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !password) return;
 
-        setLoading(true);
-        const success = await login(email, password);
-        if (success) {
+        try {
+            const response = await login({ email, password }).unwrap();
+            dispatch(setCredentials({ user: response.user, token: response.token }));
+            toast.success("Successfully logged in");
             window.location.href = "/";
+        } catch (error: any) {
+            toast.error(error.data?.message || "Login failed");
         }
-        setLoading(false);
     };
 
     return (
@@ -61,9 +66,9 @@ export default function Login() {
                     <Button
                         type="submit"
                         className="w-full"
-                        disabled={loading}
+                        disabled={isLoading}
                     >
-                        {loading ? (
+                        {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Signing In...

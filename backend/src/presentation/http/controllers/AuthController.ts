@@ -33,4 +33,9 @@ export class AuthController {
         // Implement register later
         return reply.status(501).send({ message: 'Not implemented' });
     }
+
+    async getMe(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+        // Implement getMe later
+        return reply.status(501).send({ message: 'Not implemented' });
+    }
 }

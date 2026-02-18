@@ -61,17 +61,6 @@ import {
 } from "recharts";
 
 // ─── Mock Data ───
-interface Student {
-    id: number;
-    name: string;
-    email: string;
-    department: string;
-    status: "active" | "inactive";
-    hoursThisWeek: number;
-    worklogs: number;
-    leetcode: number;
-}
-
 interface AdminConcern {
     id: number;
     user: string;
@@ -91,17 +80,6 @@ interface AdminRequest {
 }
 
 // ... (Other interfaces as needed)
-
-const students: Student[] = [
-    { id: 1, name: "John Doe", email: "john@ace.com", department: "Engineering", status: "active", hoursThisWeek: 38, worklogs: 16, leetcode: 847 },
-    { id: 2, name: "Sarah Miller", email: "sarah@ace.com", department: "Design", status: "active", hoursThisWeek: 42, worklogs: 20, leetcode: 623 },
-    { id: 3, name: "James Kim", email: "james@ace.com", department: "Engineering", status: "active", hoursThisWeek: 35, worklogs: 14, leetcode: 912 },
-    { id: 4, name: "Emily Chen", email: "emily@ace.com", department: "Data Science", status: "inactive", hoursThisWeek: 0, worklogs: 0, leetcode: 456 },
-    { id: 5, name: "Alex Rivera", email: "alex@ace.com", department: "Engineering", status: "active", hoursThisWeek: 40, worklogs: 18, leetcode: 734 },
-    { id: 6, name: "Priya Patel", email: "priya@ace.com", department: "Design", status: "active", hoursThisWeek: 36, worklogs: 15, leetcode: 589 },
-    { id: 7, name: "Marcus Lee", email: "marcus@ace.com", department: "Engineering", status: "active", hoursThisWeek: 44, worklogs: 22, leetcode: 1024 },
-    { id: 8, name: "Olivia Brown", email: "olivia@ace.com", department: "Data Science", status: "active", hoursThisWeek: 39, worklogs: 17, leetcode: 678 },
-];
 
 const weeklyTrend = [
     { week: "W1", hours: 310, worklogs: 120 },
@@ -156,26 +134,53 @@ const meetings = [
     { id: 4, title: "1-on-1 with John", date: "Feb 15", time: "3:00 PM", attendees: 2 },
 ];
 
+import { useAppSelector } from "@/app/hooks";
+import { selectIsAdmin } from "@/app/authSlice";
+import {
+    useGetAdminStatsQuery,
+    useGetAdminStudentsQuery,
+    useGetAdminWorklogsQuery,
+    useGetAdminConcernsQuery,
+    useGetAdminRequestsQuery
+} from "@/app/apiService";
+
 const Admin = () => {
+    const isAdmin = useAppSelector(selectIsAdmin);
+    const { data: statsData } = useGetAdminStatsQuery();
+    const { data: studentsData } = useGetAdminStudentsQuery({});
+    useGetAdminWorklogsQuery();
+    const { data: concernsData } = useGetAdminConcernsQuery();
+    const { data: requestsData } = useGetAdminRequestsQuery();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [deptFilter, setDeptFilter] = useState("all");
     const [respondDialog, setRespondDialog] = useState<number | null>(null);
     const [meetingDialog, setMeetingDialog] = useState(false);
     const [requestActions, setRequestActions] = useState<Record<number, string>>({});
 
-    const filteredStudents = students.filter((s) => {
-        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesDept = deptFilter === "all" || s.department === deptFilter;
-        return matchesSearch && matchesDept;
-    });
+    // ... handle logout or admin check if needed
+    if (!isAdmin) {
+        return <div>Access Denied</div>;
+    }
 
     const handleRequestAction = (id: number, action: string) => {
         setRequestActions((prev) => ({ ...prev, [id]: action }));
     };
 
-    const totalActive = students.filter((s) => s.status === "active").length;
-    const totalHours = students.reduce((sum, s) => sum + s.hoursThisWeek, 0);
-    const totalWorklogs = students.reduce((sum, s) => sum + s.worklogs, 0);
+    const students = Array.isArray(studentsData) ? studentsData : studentsData?.students || [];
+    const stats = statsData || {};
+    const adminConcernsList = Array.isArray(concernsData) ? concernsData : concernsData?.concerns || adminConcerns;
+    const adminRequestsList = Array.isArray(requestsData) ? requestsData : requestsData?.requests || adminRequests;
+
+    const filteredStudents = students.filter((s: any) => {
+        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesDept = deptFilter === "all" || s.department === deptFilter;
+        return matchesSearch && matchesDept;
+    });
+
+    const totalActive = students.filter((s: any) => s.status === "active").length;
+    const totalHours = students.reduce((sum: number, s: any) => sum + s.hoursThisWeek, 0);
+    const totalWorklogs = students.reduce((sum: number, s: any) => sum + s.worklogs, 0);
 
     return (
         <DashboardLayout>
@@ -186,10 +191,10 @@ const Admin = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <StatCard title="Total Trainees" value={String(students.length)} icon={Users} trend={`${totalActive} active`} trendUp delay={0} />
-                <StatCard title="Hours This Week" value={`${totalHours}h`} icon={Clock} trend="+12% vs last week" trendUp delay={1} />
-                <StatCard title="Worklogs Submitted" value={String(totalWorklogs)} icon={FileText} trend="Across all users" delay={2} />
-                <StatCard title="Pending Requests" value={String(adminRequests.filter((r) => r.status === "pending").length)} icon={AlertCircle} trend="Needs attention" delay={3} />
+                <StatCard title="Total Trainees" value={String(stats?.totalStudents || students.length)} icon={Users} trend={`${totalActive} active`} trendUp delay={0} />
+                <StatCard title="Hours This Week" value={`${stats?.totalHours || totalHours}h`} icon={Clock} trend="+12% vs last week" trendUp delay={1} />
+                <StatCard title="Worklogs Submitted" value={String(stats?.totalWorklogs || totalWorklogs)} icon={FileText} trend="Across all users" delay={2} />
+                <StatCard title="Pending Requests" value={String(stats?.pendingRequests || adminRequestsList.filter((r: any) => r.status === "pending").length)} icon={AlertCircle} trend="Needs attention" delay={3} />
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
@@ -273,7 +278,7 @@ const Admin = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredStudents.map((s) => (
+                                    {filteredStudents.map((s: any) => (
                                         <TableRow key={s.id}>
                                             <TableCell>
                                                 <div>
@@ -301,7 +306,7 @@ const Admin = () => {
                     <GlassCard>
                         <h3 className="font-semibold text-foreground mb-4">Worklogs Across All Users</h3>
                         <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={students.filter((s) => s.status === "active")}>
+                            <BarChart data={students.filter((s: any) => s.status === "active")}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                 <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                                 <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
@@ -401,7 +406,7 @@ const Admin = () => {
                     <GlassCard>
                         <h3 className="font-semibold text-foreground mb-4">Concern Management</h3>
                         <div className="space-y-3">
-                            {adminConcerns.map((c) => (
+                            {adminConcernsList.map((c: any) => (
                                 <div key={c.id} className="flex items-center justify-between p-4 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
