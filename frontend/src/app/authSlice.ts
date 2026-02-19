@@ -10,7 +10,7 @@ interface AuthState {
 const storedUser = localStorage.getItem('user');
 const initialState: AuthState = {
     user: (storedUser && storedUser !== 'undefined') ? JSON.parse(storedUser) : null,
-    accessToken: localStorage.getItem('accessToken'), // Changed from 'token'
+    accessToken: localStorage.getItem('accessToken'),
     isAuthenticated: !!localStorage.getItem('accessToken'),
 };
 
@@ -28,7 +28,10 @@ const authSlice = createSlice({
             localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('user', JSON.stringify(user));
         },
-        tokenReceived: (state: AuthState, { payload: { accessToken } }: PayloadAction<{ accessToken: string }>) => {
+        tokenReceived: (
+            state: AuthState,
+            { payload: { accessToken } }: PayloadAction<{ accessToken: string }>
+        ) => {
             state.accessToken = accessToken;
             state.isAuthenticated = true;
             localStorage.setItem('accessToken', accessToken);
