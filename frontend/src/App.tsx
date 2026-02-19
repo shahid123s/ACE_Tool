@@ -7,15 +7,30 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import { useAuth } from "./context/AuthContext";
 import { Toaster } from 'sonner';
+import { useAppSelector, useAppDispatch } from "./app/hooks";
+import { selectIsAuthenticated, logout, setCredentials } from "./app/authSlice";
+import { useGetMeQuery } from "./app/apiService";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { loading } = useAuth();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const { data, isLoading, error } = useGetMeQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const dispatch = useAppDispatch();
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  useEffect(() => {
+    if (error) {
+      dispatch(logout());
+    } else if (data) {
+      dispatch(setCredentials({ user: data.user, token: localStorage.getItem('token') || '' }));
+    }
+  }, [data, error, dispatch]);
+
+  if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   // if (!isAuthenticated) {
   //   return <Navigate to="/login" replace />;

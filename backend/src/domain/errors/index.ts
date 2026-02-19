@@ -37,3 +37,16 @@ export class NotFoundError extends DomainError {
         this.identifier = identifier;
     }
 }
+
+/**
+ * Application Error
+ * Generic application error with status code
+ */
+export class AppError extends DomainError {
+    public readonly statusCode: number;
+
+    constructor(message: string, statusCode: number = 500) {
+        super(message);
+        this.statusCode = statusCode;
+    }
+}

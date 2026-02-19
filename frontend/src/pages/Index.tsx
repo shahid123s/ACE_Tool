@@ -56,21 +56,40 @@ const upcomingMeetings: Meeting[] = [
     { id: 3, title: "Team Standup", time: "Tomorrow 9:00 AM", host: "Team Lead" },
 ];
 
+import { useAppSelector } from "@/app/hooks";
+import { selectCurrentUser } from "@/app/authSlice";
+import { useGetUserDashboardQuery } from "@/app/apiService";
+
 export default function Index() {
+    const user = useAppSelector(selectCurrentUser);
+    const { data: dashboardData, isLoading } = useGetUserDashboardQuery();
+
+    if (isLoading) return <div className="p-8 text-center">Loading dashboard...</div>;
+
+    const stats = dashboardData?.stats || {
+        hoursToday: "6.5h",
+        worklogs: "12",
+        leetcodeScore: "847",
+        meetingsToday: "3"
+    };
+
+    const chart = dashboardData?.chart || chartData;
+    const worklogsList = dashboardData?.recentWorklogs || recentWorklogs;
+    const meetingsList = dashboardData?.upcomingMeetings || upcomingMeetings;
     return (
         <DashboardLayout>
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-foreground">Welcome back, John 👋</h1>
+                <h1 className="text-2xl font-bold text-foreground">Welcome back, {user?.name || 'User'} 👋</h1>
                 <p className="text-muted-foreground text-sm mt-1">Here's your activity overview for today</p>
             </div>
 
             {/* Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <StatCard title="Hours Today" value="6.5h" icon={Clock} trend="+12% from yesterday" trendUp delay={0} />
-                <StatCard title="Worklogs" value="12" icon={FileText} trend="3 pending review" delay={1} />
-                <StatCard title="LeetCode Score" value="847" icon={Code2} trend="+23 this week" trendUp delay={2} />
-                <StatCard title="Meetings Today" value="3" icon={CalendarDays} delay={3} />
+                <StatCard title="Hours Today" value={stats.hoursToday} icon={Clock} trend="+12% from yesterday" trendUp delay={0} />
+                <StatCard title="Worklogs" value={stats.worklogs} icon={FileText} trend="3 pending review" delay={1} />
+                <StatCard title="LeetCode Score" value={stats.leetcodeScore} icon={Code2} trend="+23 this week" trendUp delay={2} />
+                <StatCard title="Meetings Today" value={stats.meetingsToday} icon={CalendarDays} delay={3} />
             </div>
 
             {/* Main content grid */}
@@ -82,7 +101,7 @@ export default function Index() {
                         <StatusBadge status="success" label="On Track" />
                     </div>
                     <ResponsiveContainer width="100%" height={220}>
-                        <AreaChart data={chartData}>
+                        <AreaChart data={chart}>
                             <defs>
                                 <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="hsl(80, 60%, 34%)" stopOpacity={0.3} />
@@ -117,7 +136,7 @@ export default function Index() {
                 <GlassCard className="stagger-3 p-6">
                     <h3 className="font-semibold text-foreground mb-4">Recent Worklogs</h3>
                     <div className="space-y-3">
-                        {recentWorklogs.map((log) => (
+                        {worklogsList.map((log: any) => (
                             <div key={log.id} className="p-3 rounded-lg border border-border/50 hover:border-border transition-colors bg-background/30">
                                 <div className="flex items-start justify-between mb-1">
                                     <p className="text-sm font-medium text-foreground">{log.task}</p>
@@ -137,7 +156,7 @@ export default function Index() {
                 <GlassCard className="lg:col-span-3 stagger-4 p-6">
                     <h3 className="font-semibold text-foreground mb-4">Upcoming Meetings</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {upcomingMeetings.map((meeting) => (
+                        {meetingsList.map((meeting: any) => (
                             <div key={meeting.id} className="p-4 rounded-lg border border-border/50 hover:border-border transition-colors bg-background/30">
                                 <p className="font-medium text-foreground mb-2">{meeting.title}</p>
                                 <p className="text-sm text-muted-foreground mb-1">{meeting.time}</p>
