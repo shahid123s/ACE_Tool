@@ -9,7 +9,7 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
 
     async findById(id: string): Promise<User | null> {
         try {
-            if (!id.match(/^[0-9a-fA-F]{24}$/)) return null; // Only accept valid ObjectIds if schema is default
+            if (!id.match(/^[0-9a-fA-F]{24}$/)) return null;
             const userDoc = await UserModel.findById(id).lean<UserDocument>();
             if (!userDoc) return null;
             return this.mapToDomain(userDoc);
@@ -24,17 +24,24 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
         return this.mapToDomain(userDoc);
     }
 
+    async findByAceId(aceId: string): Promise<User | null> {
+        const userDoc = await UserModel.findOne({ aceId }).lean<UserDocument>();
+        if (!userDoc) return null;
+        return this.mapToDomain(userDoc);
+    }
+
+    async findAll(filters?: { role?: string }): Promise<User[]> {
+        const query: Record<string, unknown> = {};
+        if (filters?.role) {
+            query.role = filters.role;
+        }
+        const userDocs = await UserModel.find(query).sort({ createdAt: -1 }).lean<UserDocument[]>();
+        return userDocs.map((doc) => this.mapToDomain(doc));
+    }
+
     async save(user: User): Promise<User> {
         const persistenceUser = user.toPersistence();
         const { id, ...userData } = persistenceUser;
-
-        // Check if user exists by email (unique constraint) or id if valid ObjectId
-        // Since our domain generates IDs, we might want to prioritize Mongo IDs on save.
-
-        // Strategy:
-        // 1. If we have a valid Mongo ObjectId in `id`, we update.
-        // 2. If not, we check by email.
-        // 3. Else create new.
 
         let existingUser = null;
         if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -47,16 +54,13 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
 
         if (existingUser) {
             // Update
-            existingUser.set(userData); // Update fields
-            // Ensure password is set if provided
+            existingUser.set(userData);
             if (userData.password) existingUser.password = userData.password;
 
             const saved = await existingUser.save();
-            // Return updated domain entity
             return this.mapToDomain(saved.toObject());
         } else {
             // Create
-            // We ignore the domain generated ID and rely on Mongo ID
             const newUser = new UserModel(userData);
             const saved = await newUser.save();
             return this.mapToDomain(saved.toObject());
@@ -70,8 +74,6 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
     }
 
     private mapToDomain(userDoc: any): User {
-        // userDoc might have _id as ObjectId or string depending on lean/toObject
-        // We cast to string for Domain ID
         const id = userDoc._id ? userDoc._id.toString() : userDoc.id;
 
         return new User({
@@ -80,6 +82,11 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
             email: userDoc.email,
             password: userDoc.password,
             role: userDoc.role,
+            aceId: userDoc.aceId,
+            phone: userDoc.phone,
+            batch: userDoc.batch,
+            domain: userDoc.domain,
+            tier: userDoc.tier,
             createdAt: userDoc.createdAt
         });
     }

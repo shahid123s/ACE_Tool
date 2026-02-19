@@ -2,9 +2,6 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { UserProps } from '../../../domain/user/User.js';
 
 export interface UserDocument extends Document, Omit<UserProps, 'id'> {
-    // _id is already defined in Document as unknown/any or ObjectId depending on version.
-    // We can leave it as is, or if we strictly want string we must override Document<string>
-    // but Mongoose Schema uses ObjectId by default.
     createdAt: Date;
     updatedAt: Date;
 }
@@ -14,14 +11,17 @@ const UserSchema: Schema = new Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: false },
     role: { type: String, required: true, enum: ['user', 'admin'], default: 'user' },
+    aceId: { type: String, unique: true, sparse: true },
+    phone: { type: String },
+    batch: { type: String },
+    domain: { type: String },
+    tier: { type: String, enum: ['Tier-1', 'Tier-2', 'Tier-3'] },
 }, {
     timestamps: true
 });
 
 // Create a virtual 'id' property that mirrors '_id'
 UserSchema.virtual('id').get(function (this: UserDocument) {
-    // Mongoose _id is technically unknown in the base definition often, 
-    // but we know it's an ObjectId in this context.
     return (this._id as mongoose.Types.ObjectId).toHexString();
 });
 

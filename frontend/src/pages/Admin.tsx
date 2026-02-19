@@ -141,8 +141,11 @@ import {
     useGetAdminStudentsQuery,
     useGetAdminWorklogsQuery,
     useGetAdminConcernsQuery,
-    useGetAdminRequestsQuery
+    useGetAdminRequestsQuery,
+    useCreateStudentMutation,
+    CreateStudentRequest
 } from "@/app/apiService";
+import { toast } from "sonner";
 
 const Admin = () => {
     const isAdmin = useAppSelector(selectIsAdmin);
@@ -156,7 +159,41 @@ const Admin = () => {
     const [deptFilter, setDeptFilter] = useState("all");
     const [respondDialog, setRespondDialog] = useState<number | null>(null);
     const [meetingDialog, setMeetingDialog] = useState(false);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
+    const [newStudent, setNewStudent] = useState<CreateStudentRequest>({
+        aceId: "",
+        name: "",
+        email: "",
+        phone: "",
+        batch: "",
+        domain: "",
+        tier: "Tier-1",
+    });
     const [requestActions, setRequestActions] = useState<Record<number, string>>({});
+
+    const handleCreateStudent = async () => {
+        try {
+            await createStudent(newStudent).unwrap();
+            toast.success("Student created successfully", {
+                description: "Credentials have been sent to their email."
+            });
+            setCreateDialogOpen(false);
+            setNewStudent({
+                aceId: "",
+                name: "",
+                email: "",
+                phone: "",
+                batch: "",
+                domain: "",
+                tier: "Tier-1",
+            });
+        } catch (err: any) {
+            toast.error("Failed to create student", {
+                description: err.data?.message || "Please check your input and try again."
+            });
+        }
+    };
 
     // ... handle logout or admin check if needed
     if (!isAdmin) {
@@ -243,6 +280,7 @@ const Admin = () => {
                             </ResponsiveContainer>
                         </GlassCard>
                     </div>
+
                 </TabsContent>
 
                 {/* ─── Students ─── */}
@@ -264,6 +302,9 @@ const Admin = () => {
                                     <SelectItem value="Data Science">Data Science</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <Button onClick={() => setCreateDialogOpen(true)}>
+                                <Plus className="h-4 w-4 mr-1" /> Add Student
+                            </Button>
                         </div>
                         <div className="overflow-x-auto">
                             <Table>
@@ -299,6 +340,99 @@ const Admin = () => {
                             </Table>
                         </div>
                     </GlassCard>
+                    <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Add New Student</DialogTitle>
+                                <DialogDescription>Create a new student account. Credentials will be emailed.</DialogDescription>
+                            </DialogHeader>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">ACE ID</label>
+                                    <Input
+                                        placeholder="e.g. ACE123"
+                                        value={newStudent.aceId}
+                                        onChange={(e) => setNewStudent({ ...newStudent, aceId: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Full Name</label>
+                                    <Input
+                                        placeholder="John Doe"
+                                        value={newStudent.name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Email</label>
+                                    <Input
+                                        placeholder="john@example.com"
+                                        type="email"
+                                        value={newStudent.email}
+                                        onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Phone</label>
+                                    <Input
+                                        placeholder="+91 9876543210"
+                                        value={newStudent.phone}
+                                        onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Batch</label>
+                                    <Input
+                                        placeholder="Batch-1"
+                                        value={newStudent.batch}
+                                        onChange={(e) => setNewStudent({ ...newStudent, batch: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Domain</label>
+                                    <Select
+                                        value={newStudent.domain}
+                                        onValueChange={(val) => setNewStudent({ ...newStudent, domain: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Domain" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="MERN">MERN Stack</SelectItem>
+                                            <SelectItem value="MEAN">MEAN Stack</SelectItem>
+                                            <SelectItem value="Python+Django">Python + Django</SelectItem>
+                                            <SelectItem value="Flutter">Flutter</SelectItem>
+                                            <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                                            <SelectItem value="DS">Data Science</SelectItem>
+                                            <SelectItem value="ML">Machine Learning</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Tier</label>
+                                    <Select
+                                        value={newStudent.tier}
+                                        onValueChange={(val: any) => setNewStudent({ ...newStudent, tier: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Tier" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Tier-1">Tier-1</SelectItem>
+                                            <SelectItem value="Tier-2">Tier-2</SelectItem>
+                                            <SelectItem value="Tier-3">Tier-3</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleCreateStudent} disabled={isCreating}>
+                                    {isCreating ? "Creating..." : "Create Student"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </TabsContent>
 
                 {/* ─── Worklogs Overview ─── */}
@@ -492,7 +626,7 @@ const Admin = () => {
                     </GlassCard>
                 </TabsContent>
             </Tabs>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 };
 
