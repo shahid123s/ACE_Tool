@@ -15,6 +15,8 @@ export interface UserProps {
     batch?: string;
     domain?: string;
     tier?: string;
+    stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    status?: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     createdAt?: Date;
 }
 
@@ -28,6 +30,8 @@ export interface UserDTO {
     batch?: string;
     domain?: string;
     tier?: string;
+    stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     createdAt: Date;
 }
 
@@ -42,9 +46,11 @@ export class User {
     public readonly batch?: string;
     public readonly domain?: string;
     public readonly tier?: string;
+    public readonly stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    public readonly status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     public readonly createdAt: Date;
 
-    constructor({ id, name, email, password, role, aceId, phone, batch, domain, tier, createdAt }: UserProps) {
+    constructor({ id, name, email, password, role, aceId, phone, batch, domain, tier, stage, status, createdAt }: UserProps) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -55,6 +61,8 @@ export class User {
         this.batch = batch;
         this.domain = domain;
         this.tier = tier;
+        this.stage = stage || 'Boarding week';
+        this.status = status || 'ongoing';
         this.createdAt = createdAt || new Date();
 
         this.validate();
@@ -106,6 +114,8 @@ export class User {
             batch: this.batch,
             domain: this.domain,
             tier: this.tier,
+            stage: this.stage,
+            status: this.status,
             createdAt: this.createdAt,
         };
     }
@@ -125,6 +135,8 @@ export class User {
             batch: this.batch,
             domain: this.domain,
             tier: this.tier,
+            stage: this.stage,
+            status: this.status,
             createdAt: this.createdAt,
         };
     }

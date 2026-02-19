@@ -39,6 +39,11 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         '/students',
         adminController.getStudents.bind(adminController)
     );
+
+    fastify.put<{ Params: { id: string }, Body: Partial<CreateStudentRequest> & { status?: string; stage?: string } }>(
+        '/students/:id',
+        adminController.updateStudent.bind(adminController)
+    );
 };
 
 export default adminRoutes;

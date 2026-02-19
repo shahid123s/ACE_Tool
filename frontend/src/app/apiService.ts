@@ -140,6 +140,15 @@ export const apiService = createApi({
             }),
             invalidatesTags: ['User'], // Refresh student lists
         }),
+        updateStudent: builder.mutation<User, { id: string; data: Partial<CreateStudentRequest> & { status?: string; stage?: string } }>({
+            query: ({ id, data }) => ({
+                url: `/admin/students/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            transformResponse: (response: ApiResponse<User>) => response.data,
+            invalidatesTags: ['User'], // Refresh student lists
+        }),
     }),
 });
 
@@ -153,4 +162,5 @@ export const {
     useGetAdminRequestsQuery,
     useGetUserDashboardQuery,
     useCreateStudentMutation,
+    useUpdateStudentMutation,
 } = apiService;

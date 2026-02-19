@@ -16,6 +16,8 @@ const UserSchema: Schema = new Schema({
     batch: { type: String },
     domain: { type: String },
     tier: { type: String, enum: ['Tier-1', 'Tier-2', 'Tier-3'] },
+    stage: { type: String, enum: ['Placement', 'Boarding week', 'TOI', 'Project', '2 FD', '1 FD', 'Placed'], default: 'Boarding week' },
+    status: { type: String, enum: ['ongoing', 'removed', 'break', 'hold', 'placed'], default: 'ongoing' },
 }, {
     timestamps: true
 });
