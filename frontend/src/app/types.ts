@@ -9,7 +9,13 @@ export interface User {
     name: string;
     email: string;
     role: 'admin' | 'user';
-    department?: string;
+    aceId?: string;
+    phone?: string;
+    batch?: string;
+    domain?: string;
+    tier?: string;
+    stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
 }
 
 export interface AuthResponseData {

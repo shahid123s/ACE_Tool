@@ -42,8 +42,20 @@ import {
     ThumbsUp,
     ThumbsDown,
     Plus,
-    Trophy,
+
+    MoreHorizontal,
+    Pencil,
+    Ban,
+    CheckCircle,
 } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     BarChart,
     Bar,
@@ -52,11 +64,6 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    LineChart,
-    Line,
     Legend,
 } from "recharts";
 
@@ -81,27 +88,7 @@ interface AdminRequest {
 
 // ... (Other interfaces as needed)
 
-const weeklyTrend = [
-    { week: "W1", hours: 310, worklogs: 120 },
-    { week: "W2", hours: 340, worklogs: 135 },
-    { week: "W3", hours: 295, worklogs: 110 },
-    { week: "W4", hours: 360, worklogs: 148 },
-];
-
-const departmentBreakdown = [
-    { name: "Engineering", value: 4 },
-    { name: "Design", value: 2 },
-    { name: "Data Science", value: 2 },
-];
-const DEPT_COLORS = ["hsl(80,60%,34%)", "hsl(25,90%,58%)", "hsl(174,50%,42%)"];
-
-const leetcodeLeaderboard = [
-    { rank: 1, name: "Marcus Lee", score: 1024, solved: 245, streak: 42 },
-    { rank: 2, name: "James Kim", score: 912, solved: 198, streak: 28 },
-    { rank: 3, name: "John Doe", score: 847, solved: 176, streak: 15 },
-    { rank: 4, name: "Alex Rivera", score: 734, solved: 154, streak: 21 },
-    { rank: 5, name: "Olivia Brown", score: 678, solved: 132, streak: 10 },
-];
+// ... (Other interfaces as needed)
 
 const adminConcerns: AdminConcern[] = [
     { id: 1, user: "John Doe", title: "VPN access issue", priority: "high", status: "warning", date: "Feb 12" },
@@ -121,7 +108,6 @@ const adminRequests: AdminRequest[] = [
 const notifications = [
     { id: 1, message: "John Doe submitted a new worklog", time: "5 min ago", read: false },
     { id: 2, message: "Sarah Miller raised a concern", time: "20 min ago", read: false },
-    { id: 3, message: "Marcus Lee achieved 1000+ LeetCode score", time: "1 hour ago", read: false },
     { id: 4, message: "3 pending leave requests", time: "2 hours ago", read: true },
     { id: 5, message: "Weekly report auto-generated", time: "3 hours ago", read: true },
     { id: 6, message: "Alex Rivera completed onboarding", time: "Yesterday", read: true },
@@ -141,8 +127,12 @@ import {
     useGetAdminStudentsQuery,
     useGetAdminWorklogsQuery,
     useGetAdminConcernsQuery,
-    useGetAdminRequestsQuery
+    useGetAdminRequestsQuery,
+    useCreateStudentMutation,
+    CreateStudentRequest,
+    useUpdateStudentMutation,
 } from "@/app/apiService";
+import { toast } from "sonner";
 
 const Admin = () => {
     const isAdmin = useAppSelector(selectIsAdmin);
@@ -153,10 +143,90 @@ const Admin = () => {
     const { data: requestsData } = useGetAdminRequestsQuery();
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [deptFilter, setDeptFilter] = useState("all");
+    const [domainFilter, setDomainFilter] = useState("all");
     const [respondDialog, setRespondDialog] = useState<number | null>(null);
     const [meetingDialog, setMeetingDialog] = useState(false);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
+    const [newStudent, setNewStudent] = useState<CreateStudentRequest>({
+        aceId: "",
+        name: "",
+        email: "",
+        phone: "",
+        batch: "",
+        domain: "",
+        tier: "Tier-1",
+    });
+
     const [requestActions, setRequestActions] = useState<Record<number, string>>({});
+
+    // Edit Student State
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingStudent, setEditingStudent] = useState<any>(null);
+    const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
+
+    const handleEditClick = (student: any) => {
+        setEditingStudent({
+            id: student.id,
+            name: student.name,
+            email: student.email,
+            phone: student.phone || "",
+            aceId: student.aceId || "",
+            batch: student.batch || "",
+            domain: student.domain || "",
+            tier: student.tier || "Tier-1",
+            stage: student.stage || "Boarding week",
+            status: student.status || "ongoing",
+        });
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdateStudent = async () => {
+        if (!editingStudent) return;
+        try {
+            const { id, ...data } = editingStudent;
+            await updateStudent({ id, data }).unwrap();
+            toast.success("Student updated successfully");
+            setEditDialogOpen(false);
+            setEditingStudent(null);
+        } catch (err: any) {
+            toast.error("Failed to update student", {
+                description: err.data?.message || "Please check your input and try again."
+            });
+        }
+    };
+
+    const handleStatusToggle = async (student: any, newStatus: string) => {
+        try {
+            await updateStudent({ id: student.id, data: { status: newStatus } }).unwrap();
+            toast.success(`User ${newStatus === 'ongoing' ? 'unblocked' : 'blocked/updated'} successfully`);
+        } catch (err: any) {
+            toast.error("Failed to update status");
+        }
+    };
+
+    const handleCreateStudent = async () => {
+        try {
+            await createStudent(newStudent).unwrap();
+            toast.success("Student created successfully", {
+                description: "Credentials have been sent to their email."
+            });
+            setCreateDialogOpen(false);
+            setNewStudent({
+                aceId: "",
+                name: "",
+                email: "",
+                phone: "",
+                batch: "",
+                domain: "",
+                tier: "Tier-1",
+            });
+        } catch (err: any) {
+            toast.error("Failed to create student", {
+                description: err.data?.message || "Please check your input and try again."
+            });
+        }
+    };
 
     // ... handle logout or admin check if needed
     if (!isAdmin) {
@@ -174,13 +244,13 @@ const Admin = () => {
 
     const filteredStudents = students.filter((s: any) => {
         const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesDept = deptFilter === "all" || s.department === deptFilter;
-        return matchesSearch && matchesDept;
+        const matchesDomain = domainFilter === "all" || s.domain === domainFilter;
+        return matchesSearch && matchesDomain;
     });
 
-    const totalActive = students.filter((s: any) => s.status === "active").length;
-    const totalHours = students.reduce((sum: number, s: any) => sum + s.hoursThisWeek, 0);
-    const totalWorklogs = students.reduce((sum: number, s: any) => sum + s.worklogs, 0);
+    const totalActive = students.filter((s: any) => s.status === "ongoing").length;
+    const totalHours = students.reduce((sum: number, s: any) => sum + (s.hoursThisWeek || 0), 0);
+    const totalWorklogs = students.reduce((sum: number, s: any) => sum + (s.worklogs || 0), 0);
 
     return (
         <DashboardLayout>
@@ -202,7 +272,6 @@ const Admin = () => {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="students">Students</TabsTrigger>
                     <TabsTrigger value="worklogs">Worklogs</TabsTrigger>
-                    <TabsTrigger value="leetcode">LeetCode</TabsTrigger>
                     <TabsTrigger value="meetings">Meetings</TabsTrigger>
                     <TabsTrigger value="concerns">Concerns</TabsTrigger>
                     <TabsTrigger value="requests">Requests</TabsTrigger>
@@ -216,33 +285,15 @@ const Admin = () => {
                 <TabsContent value="overview">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <GlassCard>
-                            <h3 className="font-semibold text-foreground mb-4">Weekly Trends</h3>
-                            <ResponsiveContainer width="100%" height={240}>
-                                <LineChart data={weeklyTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="week" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                                    <Tooltip contentStyle={{ background: "hsl(var(--glass-bg))", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }} />
-                                    <Line type="monotone" dataKey="hours" stroke="hsl(80,60%,34%)" strokeWidth={2} dot={{ r: 4 }} />
-                                    <Line type="monotone" dataKey="worklogs" stroke="hsl(25,90%,58%)" strokeWidth={2} dot={{ r: 4 }} />
-                                    <Legend />
-                                </LineChart>
-                            </ResponsiveContainer>
+                            <h3 className="font-semibold text-foreground mb-4">Department Distribution</h3>
+                            <div className="flex items-center justify-center h-[240px] text-muted-foreground">
+                                No data available
+                            </div>
                         </GlassCard>
 
-                        <GlassCard>
-                            <h3 className="font-semibold text-foreground mb-4">Department Distribution</h3>
-                            <ResponsiveContainer width="100%" height={240}>
-                                <PieChart>
-                                    <Pie data={departmentBreakdown} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value">
-                                        {departmentBreakdown.map((_, i) => <Cell key={i} fill={DEPT_COLORS[i]} />)}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </GlassCard>
+
                     </div>
+
                 </TabsContent>
 
                 {/* ─── Students ─── */}
@@ -253,28 +304,35 @@ const Admin = () => {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 glass-input" />
                             </div>
-                            <Select value={deptFilter} onValueChange={setDeptFilter}>
+                            <Select value={domainFilter} onValueChange={setDomainFilter}>
                                 <SelectTrigger className="w-full sm:w-44 glass-input">
-                                    <SelectValue placeholder="Department" />
+                                    <SelectValue placeholder="Domain" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Departments</SelectItem>
-                                    <SelectItem value="Engineering">Engineering</SelectItem>
-                                    <SelectItem value="Design">Design</SelectItem>
-                                    <SelectItem value="Data Science">Data Science</SelectItem>
+                                    <SelectItem value="all">All Domains</SelectItem>
+                                    <SelectItem value="MERN">MERN Stack</SelectItem>
+                                    <SelectItem value="MEAN">MEAN Stack</SelectItem>
+                                    <SelectItem value="Python+Django">Python + Django</SelectItem>
+                                    <SelectItem value="Flutter">Flutter</SelectItem>
+                                    <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                                    <SelectItem value="DS">Data Science</SelectItem>
+                                    <SelectItem value="ML">Machine Learning</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <Button onClick={() => setCreateDialogOpen(true)}>
+                                <Plus className="h-4 w-4 mr-1" /> Add Student
+                            </Button>
                         </div>
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Name</TableHead>
-                                        <TableHead>Department</TableHead>
+                                        <TableHead>Domain</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Hours/Week</TableHead>
-                                        <TableHead className="text-right">Worklogs</TableHead>
-                                        <TableHead className="text-right">LeetCode</TableHead>
+                                        <TableHead className="text-center">Batch</TableHead>
+                                        <TableHead className="text-center">Stage</TableHead>
+                                        <TableHead className="w-[50px]">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -286,19 +344,276 @@ const Admin = () => {
                                                     <p className="text-xs text-muted-foreground">{s.email}</p>
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-muted-foreground">{s.department}</TableCell>
+                                            <TableCell className="text-muted-foreground">{s.domain || '-'}</TableCell>
                                             <TableCell>
-                                                <StatusBadge status={s.status === "active" ? "success" : "error"} label={s.status === "active" ? "Active" : "Inactive"} />
+                                                <StatusBadge status={s.status} label={s.status.charAt(0).toUpperCase() + s.status.slice(1)} />
                                             </TableCell>
-                                            <TableCell className="text-right font-medium">{s.hoursThisWeek}h</TableCell>
-                                            <TableCell className="text-right">{s.worklogs}</TableCell>
-                                            <TableCell className="text-right font-medium">{s.leetcode}</TableCell>
+                                            <TableCell className="text-center font-medium">{s.batch || '-'}</TableCell>
+                                            <TableCell className="text-center">{s.stage || '-'}</TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <span className="sr-only">Open menu</span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="glass-card bg-background/95 backdrop-blur-xl border-border/50">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => handleEditClick(s)}>
+                                                            <Pencil className="mr-2 h-4 w-4" /> Edit Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        {s.status === 'ongoing' ? (
+                                                            <DropdownMenuItem onClick={() => handleStatusToggle(s, 'hold')} className="text-warning">
+                                                                <Ban className="mr-2 h-4 w-4" /> Block / Hold
+                                                            </DropdownMenuItem>
+                                                        ) : (
+                                                            <DropdownMenuItem onClick={() => handleStatusToggle(s, 'ongoing')} className="text-success">
+                                                                <CheckCircle className="mr-2 h-4 w-4" /> Unblock / Activate
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                             </Table>
                         </div>
                     </GlassCard>
+                    <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Add New Student</DialogTitle>
+                                <DialogDescription>Create a new student account. Credentials will be emailed.</DialogDescription>
+                            </DialogHeader>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">ACE ID</label>
+                                    <Input
+                                        placeholder="e.g. ACE123"
+                                        value={newStudent.aceId}
+                                        onChange={(e) => setNewStudent({ ...newStudent, aceId: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Full Name</label>
+                                    <Input
+                                        placeholder="John Doe"
+                                        value={newStudent.name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Email</label>
+                                    <Input
+                                        placeholder="john@example.com"
+                                        type="email"
+                                        value={newStudent.email}
+                                        onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Phone</label>
+                                    <Input
+                                        placeholder="+91 9876543210"
+                                        value={newStudent.phone}
+                                        onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Batch</label>
+                                    <Input
+                                        placeholder="Batch-1"
+                                        value={newStudent.batch}
+                                        onChange={(e) => setNewStudent({ ...newStudent, batch: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Domain</label>
+                                    <Select
+                                        value={newStudent.domain}
+                                        onValueChange={(val) => setNewStudent({ ...newStudent, domain: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Domain" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="MERN">MERN Stack</SelectItem>
+                                            <SelectItem value="MEAN">MEAN Stack</SelectItem>
+                                            <SelectItem value="Python+Django">Python + Django</SelectItem>
+                                            <SelectItem value="Flutter">Flutter</SelectItem>
+                                            <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                                            <SelectItem value="DS">Data Science</SelectItem>
+                                            <SelectItem value="ML">Machine Learning</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Tier</label>
+                                    <Select
+                                        value={newStudent.tier}
+                                        onValueChange={(val: any) => setNewStudent({ ...newStudent, tier: val })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Tier" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Tier-1">Tier-1</SelectItem>
+                                            <SelectItem value="Tier-2">Tier-2</SelectItem>
+                                            <SelectItem value="Tier-3">Tier-3</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleCreateStudent} disabled={isCreating}>
+                                    {isCreating ? "Creating..." : "Create Student"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Edit Student Dialog */}
+                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Edit Student</DialogTitle>
+                                <DialogDescription>Update student details and status.</DialogDescription>
+                            </DialogHeader>
+                            {editingStudent && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">ACE ID</label>
+                                        <Input
+                                            value={editingStudent.aceId}
+                                            onChange={(e) => setEditingStudent({ ...editingStudent, aceId: e.target.value })}
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Full Name</label>
+                                        <Input
+                                            value={editingStudent.name}
+                                            onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })}
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Email</label>
+                                        <Input
+                                            type="email"
+                                            value={editingStudent.email}
+                                            onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })}
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Phone</label>
+                                        <Input
+                                            value={editingStudent.phone}
+                                            onChange={(e) => setEditingStudent({ ...editingStudent, phone: e.target.value })}
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Batch</label>
+                                        <Input
+                                            value={editingStudent.batch}
+                                            onChange={(e) => setEditingStudent({ ...editingStudent, batch: e.target.value })}
+                                            className="glass-input"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Domain</label>
+                                        <Select
+                                            value={editingStudent.domain}
+                                            onValueChange={(val) => setEditingStudent({ ...editingStudent, domain: val })}
+                                        >
+                                            <SelectTrigger className="glass-input">
+                                                <SelectValue placeholder="Select Domain" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="MERN">MERN Stack</SelectItem>
+                                                <SelectItem value="MEAN">MEAN Stack</SelectItem>
+                                                <SelectItem value="Python+Django">Python + Django</SelectItem>
+                                                <SelectItem value="Flutter">Flutter</SelectItem>
+                                                <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                                                <SelectItem value="DS">Data Science</SelectItem>
+                                                <SelectItem value="ML">Machine Learning</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Tier</label>
+                                        <Select
+                                            value={editingStudent.tier}
+                                            onValueChange={(val) => setEditingStudent({ ...editingStudent, tier: val })}
+                                        >
+                                            <SelectTrigger className="glass-input">
+                                                <SelectValue placeholder="Select Tier" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Tier-1">Tier-1</SelectItem>
+                                                <SelectItem value="Tier-2">Tier-2</SelectItem>
+                                                <SelectItem value="Tier-3">Tier-3</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Stage</label>
+                                        <Select
+                                            value={editingStudent.stage}
+                                            onValueChange={(val) => setEditingStudent({ ...editingStudent, stage: val })}
+                                        >
+                                            <SelectTrigger className="glass-input">
+                                                <SelectValue placeholder="Select Stage" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Placement">Placement</SelectItem>
+                                                <SelectItem value="Boarding week">Boarding week</SelectItem>
+                                                <SelectItem value="TOI">TOI</SelectItem>
+                                                <SelectItem value="Project">Project</SelectItem>
+                                                <SelectItem value="2 FD">2 FD</SelectItem>
+                                                <SelectItem value="1 FD">1 FD</SelectItem>
+                                                <SelectItem value="Placed">Placed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Status</label>
+                                        <Select
+                                            value={editingStudent.status}
+                                            onValueChange={(val) => setEditingStudent({ ...editingStudent, status: val })}
+                                        >
+                                            <SelectTrigger className="glass-input">
+                                                <SelectValue placeholder="Select Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ongoing">Ongoing</SelectItem>
+                                                <SelectItem value="removed">Removed</SelectItem>
+                                                <SelectItem value="break">Break</SelectItem>
+                                                <SelectItem value="hold">Hold</SelectItem>
+                                                <SelectItem value="placed">Placed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleUpdateStudent} disabled={isUpdating}>
+                                    {isUpdating ? "Saving..." : "Save Changes"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </TabsContent>
 
                 {/* ─── Worklogs Overview ─── */}
@@ -306,7 +621,7 @@ const Admin = () => {
                     <GlassCard>
                         <h3 className="font-semibold text-foreground mb-4">Worklogs Across All Users</h3>
                         <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={students.filter((s: any) => s.status === "active")}>
+                            <BarChart data={students.filter((s: any) => s.status === "ongoing")}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                 <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                                 <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
@@ -319,41 +634,7 @@ const Admin = () => {
                     </GlassCard>
                 </TabsContent>
 
-                {/* ─── LeetCode Leaderboard ─── */}
-                <TabsContent value="leetcode">
-                    <GlassCard>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Trophy className="h-5 w-5 text-secondary" />
-                            <h3 className="font-semibold text-foreground">LeetCode Leaderboard</h3>
-                        </div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-16">Rank</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead className="text-right">Score</TableHead>
-                                    <TableHead className="text-right">Solved</TableHead>
-                                    <TableHead className="text-right">Streak</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {leetcodeLeaderboard.map((entry) => (
-                                    <TableRow key={entry.rank}>
-                                        <TableCell>
-                                            <span className={`font-bold ${entry.rank <= 3 ? "text-secondary" : "text-muted-foreground"}`}>
-                                                #{entry.rank}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="font-medium text-foreground">{entry.name}</TableCell>
-                                        <TableCell className="text-right font-bold text-primary">{entry.score}</TableCell>
-                                        <TableCell className="text-right">{entry.solved}</TableCell>
-                                        <TableCell className="text-right">{entry.streak} days 🔥</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </GlassCard>
-                </TabsContent>
+
 
                 {/* ─── Meetings ─── */}
                 <TabsContent value="meetings">
@@ -492,7 +773,7 @@ const Admin = () => {
                     </GlassCard>
                 </TabsContent>
             </Tabs>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 };
 

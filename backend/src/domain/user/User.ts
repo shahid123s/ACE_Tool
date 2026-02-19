@@ -10,6 +10,13 @@ export interface UserProps {
     email: string;
     password?: string;
     role?: 'user' | 'admin';
+    aceId?: string;
+    phone?: string;
+    batch?: string;
+    domain?: string;
+    tier?: string;
+    stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    status?: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     createdAt?: Date;
 }
 
@@ -18,6 +25,13 @@ export interface UserDTO {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    aceId?: string;
+    phone?: string;
+    batch?: string;
+    domain?: string;
+    tier?: string;
+    stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     createdAt: Date;
 }
 
@@ -27,14 +41,28 @@ export class User {
     public readonly email: string;
     public readonly password?: string; // Hashed password
     public readonly role: 'user' | 'admin';
+    public readonly aceId?: string;
+    public readonly phone?: string;
+    public readonly batch?: string;
+    public readonly domain?: string;
+    public readonly tier?: string;
+    public readonly stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
+    public readonly status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
     public readonly createdAt: Date;
 
-    constructor({ id, name, email, password, role, createdAt }: UserProps) {
+    constructor({ id, name, email, password, role, aceId, phone, batch, domain, tier, stage, status, createdAt }: UserProps) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role || 'user';
+        this.aceId = aceId;
+        this.phone = phone;
+        this.batch = batch;
+        this.domain = domain;
+        this.tier = tier;
+        this.stage = stage || 'Boarding week';
+        this.status = status || 'ongoing';
         this.createdAt = createdAt || new Date();
 
         this.validate();
@@ -81,6 +109,13 @@ export class User {
             name: this.name,
             email: this.email,
             role: this.role,
+            aceId: this.aceId,
+            phone: this.phone,
+            batch: this.batch,
+            domain: this.domain,
+            tier: this.tier,
+            stage: this.stage,
+            status: this.status,
             createdAt: this.createdAt,
         };
     }
@@ -95,6 +130,13 @@ export class User {
             email: this.email,
             password: this.password,
             role: this.role,
+            aceId: this.aceId,
+            phone: this.phone,
+            batch: this.batch,
+            domain: this.domain,
+            tier: this.tier,
+            stage: this.stage,
+            status: this.status,
             createdAt: this.createdAt,
         };
     }

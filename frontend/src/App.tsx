@@ -1,5 +1,5 @@
 import './index.css'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Pages
@@ -32,9 +32,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   console.log(isAuthenticated)
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <>{children}</>;
 };

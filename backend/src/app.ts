@@ -5,6 +5,7 @@ import config from './config/env.js';
 import logger from './infrastructure/logger/index.js';
 import userRoutes from './presentation/http/routes/userRoutes.js';
 import authRoutes from './presentation/http/routes/authRoutes.js';
+import adminRoutes from './presentation/http/routes/adminRoutes.js';
 
 /**
  * Create and configure Fastify app
@@ -19,7 +20,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     // Register Plugins
     await fastify.register(cors, {
         origin: true, // Allow all origins for dev, restrict in prod
-        credentials: true // Important for cookies
+        credentials: true, // Important for cookies
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        // allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
     });
 
     await fastify.register(cookie, {
@@ -33,6 +36,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // Register routes
     await fastify.register(userRoutes, { prefix: '/api/users' });
+
+    // Admin routes (auth + admin guard inside)
+    await fastify.register(adminRoutes, { prefix: '/api/admin' });
 
     return fastify;
 }

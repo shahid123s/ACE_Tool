@@ -1,5 +1,20 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import { User, AuthResponseData, LoginCredentials, ApiResponse } from './types';
+
+export interface CreateStudentRequest {
+    aceId: string;
+    name: string;
+    email: string;
+    phone: string;
+    batch: string;
+    domain: string;
+    tier: 'Tier-1' | 'Tier-2' | 'Tier-3';
+}
+
+export interface CreateStudentResponse {
+    user: User;
+    tempPassword: string;
+}
 import { logout, tokenReceived } from './authSlice';
 import { Mutex } from 'async-mutex';
 
@@ -92,25 +107,48 @@ export const apiService = createApi({
         // Admin Endpoints
         getAdminStats: builder.query<any, void>({
             query: () => '/admin/stats',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
-        getAdminStudents: builder.query<any, any>({
+        getAdminStudents: builder.query<{ students: User[] }, Record<string, any>>({
             query: (params) => ({
                 url: '/admin/students',
                 params,
             }),
+            transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
+            providesTags: ['User'],
         }),
         getAdminWorklogs: builder.query<any, void>({
             query: () => '/admin/worklogs',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         getAdminConcerns: builder.query<any, void>({
             query: () => '/admin/concerns',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         getAdminRequests: builder.query<any, void>({
             query: () => '/admin/requests',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         // User Endpoints
         getUserDashboard: builder.query<any, void>({
             query: () => '/user/dashboard',
+        }),
+        createStudent: builder.mutation<CreateStudentResponse, CreateStudentRequest>({
+            query: (data: CreateStudentRequest) => ({
+                url: '/admin/students',
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['User'], // Refresh student lists
+        }),
+        updateStudent: builder.mutation<User, { id: string; data: Partial<CreateStudentRequest> & { status?: string; stage?: string } }>({
+            query: ({ id, data }) => ({
+                url: `/admin/students/${id}`,
+                method: 'PUT',
+                body: data,
+            }),
+            transformResponse: (response: ApiResponse<User>) => response.data,
+            invalidatesTags: ['User'], // Refresh student lists
         }),
     }),
 });
@@ -124,4 +162,6 @@ export const {
     useGetAdminConcernsQuery,
     useGetAdminRequestsQuery,
     useGetUserDashboardQuery,
+    useCreateStudentMutation,
+    useUpdateStudentMutation,
 } = apiService;
