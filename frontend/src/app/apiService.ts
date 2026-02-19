@@ -1,13 +1,15 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { User, AuthResponse, LoginCredentials } from './types';
-import { logout } from './authSlice';
+import { User, AuthResponseData, LoginCredentials, ApiResponse } from './types';
+import { logout, tokenReceived } from './authSlice';
+import { Mutex } from 'async-mutex';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
     prepareHeaders: (headers) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         if (token) {
             headers.set('authorization', `Bearer ${token}`);
         }
@@ -20,17 +22,41 @@ const baseQueryWithReauth: BaseQueryFn<
     unknown,
     FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+    // wait until the mutex is available without locking it
+    await mutex.waitForUnlock();
     let result = await baseQuery(args, api, extraOptions);
 
-    // If you get a 401, logout the user
     if (result.error && result.error.status === 401) {
-        // Prevent redirect loop if already on login page
-        if (!window.location.pathname.includes('/login')) {
-            api.dispatch(logout()); // Clear Redux state
-            // Optionally clear local storage if the reducer doesn't fully handle it (it does in our case)
-            // localStorage.removeItem('token');
-            // localStorage.removeItem('user');
-            window.location.href = '/login';
+        // checking whether the mutex is locked
+        if (!mutex.isLocked()) {
+            const release = await mutex.acquire();
+            try {
+                // Try to refresh the token
+                const refreshResult = await baseQuery(
+                    { url: '/auth/refresh', method: 'POST' },
+                    api,
+                    extraOptions
+                );
+
+                if (refreshResult.data) {
+                    // Type assertion for the refresh response
+                    const data = (refreshResult.data as ApiResponse<{ accessToken: string }>).data;
+                    api.dispatch(tokenReceived({ accessToken: data.accessToken }));
+
+                    // Retry the initial query
+                    result = await baseQuery(args, api, extraOptions);
+                } else {
+                    api.dispatch(logout());
+                    window.location.href = '/login';
+                }
+            } finally {
+                // release must be called once the mutex should be released again.
+                release();
+            }
+        } else {
+            // wait until the mutex is available without locking it
+            await mutex.waitForUnlock();
+            result = await baseQuery(args, api, extraOptions);
         }
     }
     return result;
@@ -41,12 +67,13 @@ export const apiService = createApi({
     baseQuery: baseQueryWithReauth,
     tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request'],
     endpoints: (builder) => ({
-        login: builder.mutation<AuthResponse, LoginCredentials>({
+        login: builder.mutation<AuthResponseData, LoginCredentials>({
             query: (credentials) => ({
                 url: '/auth/login',
                 method: 'POST',
                 body: credentials,
             }),
+            transformResponse: (response: ApiResponse<AuthResponseData>) => response.data,
         }),
         getMe: builder.query<{ user: User }, void>({
             query: () => '/auth/me',

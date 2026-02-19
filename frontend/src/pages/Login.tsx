@@ -23,7 +23,7 @@ export default function Login() {
 
         try {
             const response = await login({ email, password }).unwrap();
-            dispatch(setCredentials({ user: response.user, token: response.token }));
+            dispatch(setCredentials({ user: response.user, accessToken: response.accessToken }));
             toast.success("Successfully logged in");
             navigate("/");
         } catch (error: any) {

@@ -1,17 +1,17 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from './types';
+import { User, AuthResponseData } from './types';
 
 interface AuthState {
     user: User | null;
-    token: string | null;
+    accessToken: string | null;
     isAuthenticated: boolean;
 }
 
 const storedUser = localStorage.getItem('user');
 const initialState: AuthState = {
     user: (storedUser && storedUser !== 'undefined') ? JSON.parse(storedUser) : null,
-    token: localStorage.getItem('token'),
-    isAuthenticated: !!localStorage.getItem('token'),
+    accessToken: localStorage.getItem('accessToken'), // Changed from 'token'
+    isAuthenticated: !!localStorage.getItem('accessToken'),
 };
 
 const authSlice = createSlice({
@@ -20,25 +20,30 @@ const authSlice = createSlice({
     reducers: {
         setCredentials: (
             state: AuthState,
-            { payload: { user, token } }: PayloadAction<{ user: User; token: string }>
+            { payload: { user, accessToken } }: PayloadAction<AuthResponseData>
         ) => {
             state.user = user;
-            state.token = token;
+            state.accessToken = accessToken;
             state.isAuthenticated = true;
-            localStorage.setItem('token', token);
+            localStorage.setItem('accessToken', accessToken);
             localStorage.setItem('user', JSON.stringify(user));
+        },
+        tokenReceived: (state: AuthState, { payload: { accessToken } }: PayloadAction<{ accessToken: string }>) => {
+            state.accessToken = accessToken;
+            state.isAuthenticated = true;
+            localStorage.setItem('accessToken', accessToken);
         },
         logout: (state: AuthState) => {
             state.user = null;
-            state.token = null;
+            state.accessToken = null;
             state.isAuthenticated = false;
-            localStorage.removeItem('token');
+            localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
         },
     },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, tokenReceived, logout } = authSlice.actions;
 export default authSlice.reducer;
 
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;

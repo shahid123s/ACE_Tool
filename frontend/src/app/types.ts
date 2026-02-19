@@ -1,3 +1,9 @@
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+}
+
 export interface User {
     id: string;
     name: string;
@@ -6,8 +12,8 @@ export interface User {
     department?: string;
 }
 
-export interface AuthResponse {
-    token: string;
+export interface AuthResponseData {
+    accessToken: string;
     user: User;
 }
 

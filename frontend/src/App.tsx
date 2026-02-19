@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       dispatch(logout());
     } else if (data) {
-      dispatch(setCredentials({ user: data.user, token: localStorage.getItem('token') || '' }));
+      dispatch(setCredentials({ user: data.user, accessToken: localStorage.getItem('accessToken') || '' }));
     }
   }, [data, error, dispatch]);
 
