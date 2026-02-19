@@ -8,6 +8,7 @@ const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
+    credentials: 'include', // Required for HttpOnly cookies (refreshToken)
     prepareHeaders: (headers) => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -22,16 +23,21 @@ const baseQueryWithReauth: BaseQueryFn<
     unknown,
     FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-    // wait until the mutex is available without locking it
+    // Wait until any in-progress refresh is done
     await mutex.waitForUnlock();
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {
-        // checking whether the mutex is locked
+        // Don't try to refresh if this IS the refresh/login request
+        const url = typeof args === 'string' ? args : args.url;
+        if (url?.includes('/auth/login') || url?.includes('/auth/refresh')) {
+            return result;
+        }
+
         if (!mutex.isLocked()) {
             const release = await mutex.acquire();
             try {
-                // Try to refresh the token
+                // Try to get a new accessToken using the refreshToken cookie
                 const refreshResult = await baseQuery(
                     { url: '/auth/refresh', method: 'POST' },
                     api,
@@ -39,22 +45,21 @@ const baseQueryWithReauth: BaseQueryFn<
                 );
 
                 if (refreshResult.data) {
-                    // Type assertion for the refresh response
-                    const data = (refreshResult.data as ApiResponse<{ accessToken: string }>).data;
-                    api.dispatch(tokenReceived({ accessToken: data.accessToken }));
+                    const data = refreshResult.data as ApiResponse<{ accessToken: string }>;
+                    api.dispatch(tokenReceived({ accessToken: data.data.accessToken }));
 
-                    // Retry the initial query
+                    // Retry the original request with the new token
                     result = await baseQuery(args, api, extraOptions);
                 } else {
+                    // Refresh failed — session is truly expired
                     api.dispatch(logout());
                     window.location.href = '/login';
                 }
             } finally {
-                // release must be called once the mutex should be released again.
                 release();
             }
         } else {
-            // wait until the mutex is available without locking it
+            // Another request is already refreshing — wait, then retry
             await mutex.waitForUnlock();
             result = await baseQuery(args, api, extraOptions);
         }
@@ -73,10 +78,15 @@ export const apiService = createApi({
                 method: 'POST',
                 body: credentials,
             }),
+            // Backend returns { success, data: { user, accessToken } }
+            // Unwrap so the hook returns { user, accessToken } directly
             transformResponse: (response: ApiResponse<AuthResponseData>) => response.data,
         }),
         getMe: builder.query<{ user: User }, void>({
             query: () => '/auth/me',
+            // Backend returns { success, data: { id, name, ... } }
+            // Wrap into { user } so ProtectedRoute can read data.user
+            transformResponse: (response: ApiResponse<User>) => ({ user: response.data }),
             providesTags: ['User'],
         }),
         // Admin Endpoints

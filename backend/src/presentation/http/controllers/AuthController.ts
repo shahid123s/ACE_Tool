@@ -111,6 +111,24 @@ export class AuthController {
     }
 
     async getMe(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
-        return reply.status(501).send({ message: 'Not implemented' });
+        try {
+            const userId = request.user?.id;
+            if (!userId) {
+                return reply.status(401).send({ success: false, message: 'Unauthorized' });
+            }
+
+            const user = await this.getUserUseCase.execute(userId);
+
+            return reply.send({
+                success: true,
+                data: user
+            });
+        } catch (error: any) {
+            request.log.error(error);
+            return reply.status(error.statusCode || 500).send({
+                success: false,
+                message: error.message
+            });
+        }
     }
 } 
