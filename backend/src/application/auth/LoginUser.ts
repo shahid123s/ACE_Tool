@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../../domain/user/UserRepository.js';
 import { UserDTO } from '../../domain/user/User.js';
@@ -58,24 +59,7 @@ export class LoginUser implements IUseCase<LoginRequest, LoginResponse> {
         // Generate Refresh Token
         const rawRefreshToken = TokenService.generateRefreshToken();
         const tokenHash = TokenService.hashToken(rawRefreshToken);
-        const familyId = crypto.randomUUID(); // Use native crypto or uuid lib if installed. Wait, node crypto has randomUUID in recent versions.
-        // Or usage TokenService helper? I didn't add randomUUID helper in TokenService yet.
-        // Let's use crypto.randomUUID() directly.
-        console.log(`rawRefreshToken:
-            
-            ${rawRefreshToken}`);
-        console.log(`tokenHash: 
-            
-            ${tokenHash}`);
-        console.log(`familyId: 
-            
-            ${familyId}`);
-        console.log(`user:
-            
-            ${user}`);
-        console.log(`accessToken:
-            
-            ${accessToken}`);
+        const familyId = crypto.randomUUID();
 
         const refreshTokenEntity = new RefreshToken({
             id: '', // New entity
@@ -89,15 +73,6 @@ export class LoginUser implements IUseCase<LoginRequest, LoginResponse> {
         });
 
         await this.refreshTokenRepository.save(refreshTokenEntity);
-
-        console.log(`resutl
-            
-            
-            
-            
-            
-            
-            `, user, accessToken, refreshTokenEntity)
 
         return {
             user: user.toObject(),
