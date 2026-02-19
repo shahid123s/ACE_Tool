@@ -32,6 +32,9 @@ export class ResetPassword implements IUseCase<ResetPasswordRequest, ResetPasswo
             throw new AppError('User not found', 404);
         }
         console.log(user, data.otp, data, 'ivda nokkane ashanee ,, in src/application/auth/ResetPassword.ts');
+        
+        console.log(user.otp !== data.otp)
+
         // Verify OTP
         if (!user.otp || user.otp !== data.otp) {
             throw new AppError('Invalid OTP', 400);

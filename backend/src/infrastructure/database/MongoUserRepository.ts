@@ -19,7 +19,7 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        const userDoc = await UserModel.findOne({ email }).lean<UserDocument>();
+        const userDoc = await UserModel.findOne({ email }).select('+otp +otpExpiresAt').lean<UserDocument>();
         if (!userDoc) return null;
         return this.mapToDomain(userDoc);
     }

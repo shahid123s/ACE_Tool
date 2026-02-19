@@ -143,8 +143,6 @@ export class User {
             tier: this.tier,
             stage: this.stage,
             status: this.status,
-            otp: this.otp,
-            otpExpiresAt: this.otpExpiresAt,
             createdAt: this.createdAt,
         };
     }
