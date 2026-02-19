@@ -42,7 +42,7 @@ import {
     ThumbsUp,
     ThumbsDown,
     Plus,
-    Trophy,
+
     MoreHorizontal,
     Pencil,
     Ban,
@@ -88,13 +88,7 @@ interface AdminRequest {
 
 // ... (Other interfaces as needed)
 
-const leetcodeLeaderboard = [
-    { rank: 1, name: "Marcus Lee", score: 1024, solved: 245, streak: 42 },
-    { rank: 2, name: "James Kim", score: 912, solved: 198, streak: 28 },
-    { rank: 3, name: "John Doe", score: 847, solved: 176, streak: 15 },
-    { rank: 4, name: "Alex Rivera", score: 734, solved: 154, streak: 21 },
-    { rank: 5, name: "Olivia Brown", score: 678, solved: 132, streak: 10 },
-];
+// ... (Other interfaces as needed)
 
 const adminConcerns: AdminConcern[] = [
     { id: 1, user: "John Doe", title: "VPN access issue", priority: "high", status: "warning", date: "Feb 12" },
@@ -114,7 +108,6 @@ const adminRequests: AdminRequest[] = [
 const notifications = [
     { id: 1, message: "John Doe submitted a new worklog", time: "5 min ago", read: false },
     { id: 2, message: "Sarah Miller raised a concern", time: "20 min ago", read: false },
-    { id: 3, message: "Marcus Lee achieved 1000+ LeetCode score", time: "1 hour ago", read: false },
     { id: 4, message: "3 pending leave requests", time: "2 hours ago", read: true },
     { id: 5, message: "Weekly report auto-generated", time: "3 hours ago", read: true },
     { id: 6, message: "Alex Rivera completed onboarding", time: "Yesterday", read: true },
@@ -279,7 +272,6 @@ const Admin = () => {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="students">Students</TabsTrigger>
                     <TabsTrigger value="worklogs">Worklogs</TabsTrigger>
-                    <TabsTrigger value="leetcode">LeetCode</TabsTrigger>
                     <TabsTrigger value="meetings">Meetings</TabsTrigger>
                     <TabsTrigger value="concerns">Concerns</TabsTrigger>
                     <TabsTrigger value="requests">Requests</TabsTrigger>
@@ -338,10 +330,9 @@ const Admin = () => {
                                         <TableHead>Name</TableHead>
                                         <TableHead>Domain</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Batch</TableHead>
-                                        <TableHead className="text-right">Stage</TableHead>
-                                        <TableHead className="text-right">LeetCode</TableHead>
-                                        <TableHead className="w-[50px]"></TableHead>
+                                        <TableHead className="text-center">Batch</TableHead>
+                                        <TableHead className="text-center">Stage</TableHead>
+                                        <TableHead className="w-[50px]">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -357,9 +348,8 @@ const Admin = () => {
                                             <TableCell>
                                                 <StatusBadge status={s.status} label={s.status.charAt(0).toUpperCase() + s.status.slice(1)} />
                                             </TableCell>
-                                            <TableCell className="text-right font-medium">{s.batch || '-'}</TableCell>
-                                            <TableCell className="text-right">{s.stage || '-'}</TableCell>
-                                            <TableCell className="text-right font-medium">{s.leetcode || '-'}</TableCell>
+                                            <TableCell className="text-center font-medium">{s.batch || '-'}</TableCell>
+                                            <TableCell className="text-center">{s.stage || '-'}</TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
@@ -500,7 +490,8 @@ const Admin = () => {
                                         <Input
                                             value={editingStudent.aceId}
                                             onChange={(e) => setEditingStudent({ ...editingStudent, aceId: e.target.value })}
-                                            className="glass-input"
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -508,7 +499,8 @@ const Admin = () => {
                                         <Input
                                             value={editingStudent.name}
                                             onChange={(e) => setEditingStudent({ ...editingStudent, name: e.target.value })}
-                                            className="glass-input"
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -517,7 +509,8 @@ const Admin = () => {
                                             type="email"
                                             value={editingStudent.email}
                                             onChange={(e) => setEditingStudent({ ...editingStudent, email: e.target.value })}
-                                            className="glass-input"
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -525,7 +518,8 @@ const Admin = () => {
                                         <Input
                                             value={editingStudent.phone}
                                             onChange={(e) => setEditingStudent({ ...editingStudent, phone: e.target.value })}
-                                            className="glass-input"
+                                            className="glass-input opacity-50 cursor-not-allowed"
+                                            readOnly
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -640,41 +634,7 @@ const Admin = () => {
                     </GlassCard>
                 </TabsContent>
 
-                {/* ─── LeetCode Leaderboard ─── */}
-                <TabsContent value="leetcode">
-                    <GlassCard>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Trophy className="h-5 w-5 text-secondary" />
-                            <h3 className="font-semibold text-foreground">LeetCode Leaderboard</h3>
-                        </div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-16">Rank</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead className="text-right">Score</TableHead>
-                                    <TableHead className="text-right">Solved</TableHead>
-                                    <TableHead className="text-right">Streak</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {leetcodeLeaderboard.map((entry) => (
-                                    <TableRow key={entry.rank}>
-                                        <TableCell>
-                                            <span className={`font-bold ${entry.rank <= 3 ? "text-secondary" : "text-muted-foreground"}`}>
-                                                #{entry.rank}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="font-medium text-foreground">{entry.name}</TableCell>
-                                        <TableCell className="text-right font-bold text-primary">{entry.score}</TableCell>
-                                        <TableCell className="text-right">{entry.solved}</TableCell>
-                                        <TableCell className="text-right">{entry.streak} days 🔥</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </GlassCard>
-                </TabsContent>
+
 
                 {/* ─── Meetings ─── */}
                 <TabsContent value="meetings">

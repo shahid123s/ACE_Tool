@@ -87,6 +87,8 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
             batch: userDoc.batch,
             domain: userDoc.domain,
             tier: userDoc.tier,
+            stage: userDoc.stage,
+            status: userDoc.status,
             createdAt: userDoc.createdAt
         });
     }

@@ -115,6 +115,7 @@ export const apiService = createApi({
                 params,
             }),
             transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
+            providesTags: ['User'],
         }),
         getAdminWorklogs: builder.query<any, void>({
             query: () => '/admin/worklogs',
