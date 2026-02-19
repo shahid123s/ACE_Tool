@@ -22,7 +22,7 @@ export class NodemailerEmailService implements IEmailService {
 
     async sendWelcomeEmail(to: string, name: string, tempPassword: string, aceId: string): Promise<void> {
         const mailOptions = {
-            from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@ace-platform.com',
+            from: process.env.SMTP_USER || 'noreply@ace-platform.com',
             to,
             subject: `Welcome to ACE Platform - Your Account (${aceId})`,
             html: `
@@ -42,6 +42,7 @@ export class NodemailerEmailService implements IEmailService {
         };
 
         try {
+            console.log('Sending welcome email to:', to);
             await this.transporter.sendMail(mailOptions);
         } catch (error) {
             console.error('Failed to send welcome email:', error);
