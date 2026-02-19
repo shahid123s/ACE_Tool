@@ -4,4 +4,5 @@
  */
 export interface IEmailService {
     sendWelcomeEmail(to: string, name: string, tempPassword: string, aceId: string): Promise<void>;
+    sendOTPEmail(to: string, name: string, otp: string): Promise<void>;
 }

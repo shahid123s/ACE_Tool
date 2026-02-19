@@ -7,6 +7,9 @@ import { GetUser } from '../../../application/user/GetUser.js';
 import { userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 import { refreshTokenRepository } from '../../../infrastructure/database/MongoRefreshTokenRepository.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { SendOTP, SendOTPRequest } from '../../../application/auth/SendOTP.js';
+import { ResetPassword, ResetPasswordRequest } from '../../../application/auth/ResetPassword.js';
+import { emailService } from '../../../infrastructure/email/NodemailerEmailService.js';
 
 /**
  * Authentication routes
@@ -19,6 +22,8 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const refreshUserToken = new RefreshUserToken(userRepository, refreshTokenRepository);
     const logoutUser = new LogoutUser(refreshTokenRepository);
     const getUser = new GetUser(userRepository);
+    const sendOTP = new SendOTP(userRepository, emailService);
+    const resetPassword = new ResetPassword(userRepository);
 
     // 2. Instantiate Controller (Presentation Layer)
     // Inject Use Cases
@@ -26,7 +31,9 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         loginUser,
         refreshUserToken,
         logoutUser,
-        getUser
+        getUser,
+        sendOTP,
+        resetPassword
     );
 
     // 3. Define Routes
@@ -44,6 +51,12 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     // Get Me Route
     fastify.get('/me', { preHandler: [authenticate] }, authController.getMe.bind(authController));
+
+    // Forgot Password Route
+    fastify.post<{ Body: SendOTPRequest }>('/forgot-password', authController.forgotPassword.bind(authController));
+
+    // Reset Password Route
+    fastify.post<{ Body: ResetPasswordRequest }>('/reset-password', authController.resetPassword.bind(authController));
 };
 
 export default authRoutes;

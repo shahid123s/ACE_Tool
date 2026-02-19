@@ -64,6 +64,11 @@ export default function Login() {
                             required
                         />
                     </div>
+                    <div className="flex justify-end">
+                        <Button variant="link" className="px-0 h-auto text-sm text-muted-foreground hover:text-primary" onClick={() => navigate('/forgot-password')}>
+                            Forgot Password?
+                        </Button>
+                    </div>
 
                     <Button
                         type="submit"

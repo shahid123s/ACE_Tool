@@ -17,6 +17,8 @@ export interface UserProps {
     tier?: string;
     stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
     status?: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
+    otp?: string;
+    otpExpiresAt?: Date;
     createdAt?: Date;
 }
 
@@ -48,9 +50,11 @@ export class User {
     public readonly tier?: string;
     public readonly stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
     public readonly status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
+    public readonly otp?: string;
+    public readonly otpExpiresAt?: Date;
     public readonly createdAt: Date;
 
-    constructor({ id, name, email, password, role, aceId, phone, batch, domain, tier, stage, status, createdAt }: UserProps) {
+    constructor({ id, name, email, password, role, aceId, phone, batch, domain, tier, stage, status, otp, otpExpiresAt, createdAt }: UserProps) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -63,6 +67,8 @@ export class User {
         this.tier = tier;
         this.stage = stage || 'Boarding week';
         this.status = status || 'ongoing';
+        this.otp = otp;
+        this.otpExpiresAt = otpExpiresAt;
         this.createdAt = createdAt || new Date();
 
         this.validate();
@@ -137,6 +143,8 @@ export class User {
             tier: this.tier,
             stage: this.stage,
             status: this.status,
+            otp: this.otp,
+            otpExpiresAt: this.otpExpiresAt,
             createdAt: this.createdAt,
         };
     }

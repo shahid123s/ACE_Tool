@@ -89,6 +89,8 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
             tier: userDoc.tier,
             stage: userDoc.stage,
             status: userDoc.status,
+            otp: userDoc.otp,
+            otpExpiresAt: userDoc.otpExpiresAt,
             createdAt: userDoc.createdAt
         });
     }

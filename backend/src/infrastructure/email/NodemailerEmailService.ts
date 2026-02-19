@@ -50,6 +50,33 @@ export class NodemailerEmailService implements IEmailService {
             // The admin can resend later
         }
     }
+
+    async sendOTPEmail(to: string, name: string, otp: string): Promise<void> {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@ace-platform.com',
+            to,
+            subject: 'Password Reset OTP - ACE Platform',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #333;">Password Reset Request</h2>
+                    <p>Hi <strong>${name}</strong>,</p>
+                    <p>You requested to reset your password. Use the OTP below to proceed:</p>
+                    <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0; text-align: center;">
+                        <span style="font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #333;">${otp}</span>
+                    </div>
+                    <p>This OTP is valid for 15 minutes.</p>
+                    <p style="color: #666; font-size: 14px;">If you didn't request this, please ignore this email.</p>
+                </div>
+            `,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+        } catch (error) {
+            console.error('Failed to send OTP email:', error);
+            throw error; // Throw for OTP, user needs to know it failed
+        }
+    }
 }
 
 export const emailService = new NodemailerEmailService();
