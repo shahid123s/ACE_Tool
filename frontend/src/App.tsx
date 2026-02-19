@@ -26,12 +26,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     if (error) {
       dispatch(logout());
     } else if (data) {
-      dispatch(setCredentials({ user: data.user, token: localStorage.getItem('token') || '' }));
+      dispatch(setCredentials({ user: data.user, accessToken: localStorage.getItem('accessToken') || '' }));
     }
   }, [data, error, dispatch]);
 
   if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-
+  console.log(isAuthenticated)
   // if (!isAuthenticated) {
   //   return <Navigate to="/login" replace />;
   // }

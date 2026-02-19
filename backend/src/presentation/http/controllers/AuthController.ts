@@ -113,4 +113,4 @@ export class AuthController {
     async getMe(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
         return reply.status(501).send({ message: 'Not implemented' });
     }
-}
+} 

@@ -48,6 +48,33 @@ When the page reloads:
 - We added a safety check: `(storedUser && storedUser !== 'undefined') ? JSON.parse(storedUser) : null`.
 - This prevents the "undefined is not valid JSON" error if `localStorage` was corrupted with a plain "undefined" string.
 
-## 4. Why casing matters
+## 4. Refresh Token Flow (Silent Auth)
+
+We implemented a robust refresh token mechanism using `async-mutex` to handle token expiration seamlessly.
+
+### How it works:
+1.  **Initial Login:**
+    - The backend returns `{ user, accessToken }`.
+    - It sets a secure `httpOnly` cookie containing the `refreshToken`.
+    - We store `accessToken` in Redux and `localStorage`.
+
+2.  **API Requests (`baseQueryWithReauth`):**
+    - Every API call goes through our custom `baseQueryWithReauth` wrapper.
+    - If a request fails with **401 Unauthorized**:
+        1.  We **lock** the mutex to prevent multiple parallel refresh calls.
+        2.  We call `POST /auth/refresh`. The browser automatically sends the `refreshToken` cookie.
+        3.  **If successful:**
+            - We get a new `accessToken`.
+            - We dispatch `tokenReceived({ accessToken })` to update the store.
+            - We **retry** the original failed request with the new token.
+        4.  **If failed:**
+            - The session is truly expired.
+            - We dispatch `logout()` and redirect to `/login`.
+        5.  We release the mutex.
+
+### Why Mutex?
+If a page loads and fires 5 API calls simultaneously, and the token is expired, all 5 would fail. Without a mutex, we would trigger 5 refresh calls. The first one would succeed, invalidating the old refresh token, causing the other 4 to fail. The mutex ensures we only refresh **once**, and the other 4 calls wait and then use the *new* token.
+
+## 5. Why casing matters
 
 The filesystem use of casing must match the import casing. If the import is `@/components/ui/Button` but the file is `button.tsx`, the build will fail on case-sensitive systems. We have standardized on the naming preferred by the user.

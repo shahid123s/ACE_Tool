@@ -3,6 +3,7 @@ import { BackgroundBlobs } from "@/components/shared/BackgroundBlobs";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/Button";
+import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@/app/apiService";
 import { useAppDispatch } from "@/app/hooks";
 import { setCredentials } from "@/app/authSlice";
@@ -14,6 +15,7 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [login, { isLoading }] = useLoginMutation();
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,9 +23,9 @@ export default function Login() {
 
         try {
             const response = await login({ email, password }).unwrap();
-            dispatch(setCredentials({ user: response.user, token: response.token }));
+            dispatch(setCredentials({ user: response.user, accessToken: response.accessToken }));
             toast.success("Successfully logged in");
-            window.location.href = "/";
+            navigate("/");
         } catch (error: any) {
             toast.error(error.data?.message || "Login failed");
         }
