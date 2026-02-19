@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { IUserRepository } from '../../domain/user/UserRepository.js';
+import { IOtpRepository } from '../../domain/auth/IOtpRepository.js';
 import { IUseCase } from '../interfaces.js';
 import { AppError, ValidationError } from '../../domain/errors/index.js';
 
@@ -15,11 +16,12 @@ export interface ResetPasswordResponse {
 
 /**
  * Reset Password Use Case
- * Verifies OTP and updates password.
+ * Verifies OTP from Redis and updates password in DB.
  */
 export class ResetPassword implements IUseCase<ResetPasswordRequest, ResetPasswordResponse> {
     constructor(
-        private readonly userRepository: IUserRepository
+        private readonly userRepository: IUserRepository,
+        private readonly otpRepository: IOtpRepository
     ) { }
 
     async execute(data: ResetPasswordRequest): Promise<ResetPasswordResponse> {
@@ -31,30 +33,29 @@ export class ResetPassword implements IUseCase<ResetPasswordRequest, ResetPasswo
         if (!user) {
             throw new AppError('User not found', 404);
         }
-        console.log(user, data.otp, data, 'ivda nokkane ashanee ,, in src/application/auth/ResetPassword.ts');
-        
-        console.log(user.otp !== data.otp)
 
-        // Verify OTP
-        if (!user.otp || user.otp !== data.otp) {
-            throw new AppError('Invalid OTP', 400);
-        }
+        // Verify OTP from Redis
+        const storedOtp = await this.otpRepository.get(data.email);
 
-        // Verify Expiry
-        if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
-            throw new AppError('OTP expired', 400);
+        // Normalize for comparison
+        const inputOtp = String(data.otp).trim();
+        const validOtp = storedOtp ? String(storedOtp).trim() : null;
+
+        console.log(inputOtp, validOtp, '❤️‍🔥')
+
+        if (!validOtp || validOtp !== inputOtp) {
+            throw new AppError('Invalid or expired OTP', 400);
         }
 
         // Hash new password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(data.newPassword, salt);
 
-        // Update User
-        // Again, assuming I can update properties.
-        // User.ts has 'password' as readonly?
+        // Update User Password
         (user as any).password = hashedPassword;
-        (user as any).otp = undefined; // Clear OTP
-        (user as any).otpExpiresAt = undefined;
+
+        // Clear OTP from Redis
+        await this.otpRepository.delete(data.email);
 
         await this.userRepository.save(user);
 
