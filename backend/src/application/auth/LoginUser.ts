@@ -6,7 +6,7 @@ import { IUseCase } from '../interfaces.js';
 import { IRefreshTokenRepository } from '../../domain/auth/RefreshTokenRepository.js';
 import { TokenService } from '../../infrastructure/auth/TokenService.js';
 import { RefreshToken } from '../../domain/auth/RefreshToken.js';
-import config from '../../config/env.js';
+// import config from '../../config/env.js';
 
 export interface LoginRequest {
     email: string;
@@ -61,6 +61,21 @@ export class LoginUser implements IUseCase<LoginRequest, LoginResponse> {
         const familyId = crypto.randomUUID(); // Use native crypto or uuid lib if installed. Wait, node crypto has randomUUID in recent versions.
         // Or usage TokenService helper? I didn't add randomUUID helper in TokenService yet.
         // Let's use crypto.randomUUID() directly.
+        console.log(`rawRefreshToken:
+            
+            ${rawRefreshToken}`);
+        console.log(`tokenHash: 
+            
+            ${tokenHash}`);
+        console.log(`familyId: 
+            
+            ${familyId}`);
+        console.log(`user:
+            
+            ${user}`);
+        console.log(`accessToken:
+            
+            ${accessToken}`);
 
         const refreshTokenEntity = new RefreshToken({
             id: '', // New entity
