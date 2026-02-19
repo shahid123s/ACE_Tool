@@ -107,21 +107,26 @@ export const apiService = createApi({
         // Admin Endpoints
         getAdminStats: builder.query<any, void>({
             query: () => '/admin/stats',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         getAdminStudents: builder.query<{ students: User[] }, Record<string, any>>({
             query: (params) => ({
                 url: '/admin/students',
                 params,
             }),
+            transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
         }),
         getAdminWorklogs: builder.query<any, void>({
             query: () => '/admin/worklogs',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         getAdminConcerns: builder.query<any, void>({
             query: () => '/admin/concerns',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         getAdminRequests: builder.query<any, void>({
             query: () => '/admin/requests',
+            transformResponse: (response: ApiResponse<any>) => response.data,
         }),
         // User Endpoints
         getUserDashboard: builder.query<any, void>({
