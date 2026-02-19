@@ -1,28 +1,25 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { LoginUser, LoginRequest } from '../../../application/auth/LoginUser.js';
-import { RefreshUserToken } from '../../../application/auth/RefreshUserToken.js';
-import { LogoutUser } from '../../../application/auth/LogoutUser.js';
-import { MongoUserRepository, userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
-import { MongoRefreshTokenRepository, refreshTokenRepository } from '../../../infrastructure/database/MongoRefreshTokenRepository.js';
+import { LoginRequest, LoginResponse } from '../../../application/auth/LoginUser.js';
+import { RefreshTokenRequest, RefreshTokenResponse } from '../../../application/auth/RefreshUserToken.js';
+import { LogoutRequest } from '../../../application/auth/LogoutUser.js';
+import { UserDTO } from '../../../domain/user/User.js';
+import { IUseCase } from '../../../application/interfaces.js';
 
 export class AuthController {
-    private userRepository: MongoUserRepository;
-    private refreshTokenRepository: MongoRefreshTokenRepository;
-
-    constructor() {
-        this.userRepository = userRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-    }
+    constructor(
+        private readonly loginUseCase: IUseCase<LoginRequest, LoginResponse>,
+        private readonly refreshUseCase: IUseCase<RefreshTokenRequest, RefreshTokenResponse>,
+        private readonly logoutUseCase: IUseCase<LogoutRequest, void>,
+        private readonly getUserUseCase: IUseCase<string, UserDTO>
+    ) { }
 
     async login(request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
-            const loginUser = new LoginUser(this.userRepository, this.refreshTokenRepository);
-
             // Extract IP and User Agent
             const ip = request.ip;
             const userAgent = request.headers['user-agent'] || 'unknown';
 
-            const result = await loginUser.execute({ ...request.body, ip, userAgent });
+            const result = await this.loginUseCase.execute({ ...request.body, ip, userAgent });
 
             // Set Refresh Token as HttpOnly Cookie
             reply.setCookie('refreshToken', result.refreshToken, {
@@ -59,8 +56,7 @@ export class AuthController {
             const ip = request.ip;
             const userAgent = request.headers['user-agent'] || 'unknown';
 
-            const refreshUserToken = new RefreshUserToken(this.userRepository, this.refreshTokenRepository);
-            const result = await refreshUserToken.execute({ refreshToken, ip, userAgent });
+            const result = await this.refreshUseCase.execute({ refreshToken, ip, userAgent });
 
             // Rotate Cookie
             reply.setCookie('refreshToken', result.refreshToken, {
@@ -94,8 +90,7 @@ export class AuthController {
         try {
             const refreshToken = request.cookies.refreshToken;
             if (refreshToken) {
-                const logoutUser = new LogoutUser(this.refreshTokenRepository);
-                await logoutUser.execute({ refreshToken });
+                await this.logoutUseCase.execute({ refreshToken });
             }
 
             reply.clearCookie('refreshToken', { path: '/api/auth' });
@@ -111,6 +106,24 @@ export class AuthController {
     }
 
     async getMe(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
-        return reply.status(501).send({ message: 'Not implemented' });
+        try {
+            const userId = request.user?.id;
+            if (!userId) {
+                return reply.status(401).send({ success: false, message: 'Unauthorized' });
+            }
+
+            const user = await this.getUserUseCase.execute(userId);
+
+            return reply.send({
+                success: true,
+                data: user
+            });
+        } catch (error: any) {
+            request.log.error(error);
+            return reply.status(error.statusCode || 500).send({
+                success: false,
+                message: error.message
+            });
+        }
     }
 } 
