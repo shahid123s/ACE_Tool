@@ -150,6 +150,22 @@ export const apiService = createApi({
             transformResponse: (response: ApiResponse<User>) => response.data,
             invalidatesTags: ['User'], // Refresh student lists
         }),
+        sendOtp: builder.mutation<{ message: string }, { email: string }>({
+            query: (body) => ({
+                url: '/auth/forgot-password',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<{ message: string }>) => response.data,
+        }),
+        resetPassword: builder.mutation<{ message: string }, { email: string; otp: string; newPassword: string }>({
+            query: (body) => ({
+                url: '/auth/reset-password',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<{ message: string }>) => response.data,
+        }),
     }),
 });
 
@@ -164,4 +180,6 @@ export const {
     useGetUserDashboardQuery,
     useCreateStudentMutation,
     useUpdateStudentMutation,
+    useSendOtpMutation,
+    useResetPasswordMutation,
 } = apiService;

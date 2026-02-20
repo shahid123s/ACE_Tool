@@ -4,13 +4,17 @@ import { RefreshTokenRequest, RefreshTokenResponse } from '../../../application/
 import { LogoutRequest } from '../../../application/auth/LogoutUser.js';
 import { UserDTO } from '../../../domain/user/User.js';
 import { IUseCase } from '../../../application/interfaces.js';
+import { SendOTPRequest, SendOTPResponse } from '../../../application/auth/SendOTP.js';
+import { ResetPasswordRequest, ResetPasswordResponse } from '../../../application/auth/ResetPassword.js';
 
 export class AuthController {
     constructor(
         private readonly loginUseCase: IUseCase<LoginRequest, LoginResponse>,
         private readonly refreshUseCase: IUseCase<RefreshTokenRequest, RefreshTokenResponse>,
         private readonly logoutUseCase: IUseCase<LogoutRequest, void>,
-        private readonly getUserUseCase: IUseCase<string, UserDTO>
+        private readonly getUserUseCase: IUseCase<string, UserDTO>,
+        private readonly sendOTPUseCase: IUseCase<SendOTPRequest, SendOTPResponse>,
+        private readonly resetPasswordUseCase: IUseCase<ResetPasswordRequest, ResetPasswordResponse>
     ) { }
 
     async login(request: FastifyRequest<{ Body: LoginRequest }>, reply: FastifyReply): Promise<FastifyReply> {
@@ -121,6 +125,37 @@ export class AuthController {
         } catch (error: any) {
             request.log.error(error);
             return reply.status(error.statusCode || 500).send({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+    async forgotPassword(request: FastifyRequest<{ Body: SendOTPRequest }>, reply: FastifyReply): Promise<FastifyReply> {
+        try {
+            const result = await this.sendOTPUseCase.execute(request.body);
+            return reply.send({
+                success: true,
+                message: result.message
+            });
+        } catch (error: any) {
+            request.log.error(error);
+            return reply.status(error.statusCode || 400).send({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+
+    async resetPassword(request: FastifyRequest<{ Body: ResetPasswordRequest }>, reply: FastifyReply): Promise<FastifyReply> {
+        try {
+            const result = await this.resetPasswordUseCase.execute(request.body);
+            return reply.send({
+                success: true,
+                message: result.message
+            });
+        } catch (error: any) {
+            request.log.error(error);
+            return reply.status(error.statusCode || 400).send({
                 success: false,
                 message: error.message
             });
