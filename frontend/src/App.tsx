@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import Worklogs from "./pages/Worklogs";
 import NotFound from "./pages/NotFound";
 import { Toaster } from 'sonner';
 import { useAppSelector, useAppDispatch } from "./app/hooks";
@@ -60,6 +61,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/worklogs"
+            element={
+              <ProtectedRoute>
+                <Worklogs />
               </ProtectedRoute>
             }
           />
