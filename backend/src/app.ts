@@ -6,6 +6,7 @@ import logger from './infrastructure/logger/index.js';
 import userRoutes from './presentation/http/routes/userRoutes.js';
 import authRoutes from './presentation/http/routes/authRoutes.js';
 import adminRoutes from './presentation/http/routes/adminRoutes.js';
+import worklogRoutes from './presentation/http/routes/worklogRoutes.js';
 
 /**
  * Create and configure Fastify app
@@ -39,6 +40,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // Admin routes (auth + admin guard inside)
     await fastify.register(adminRoutes, { prefix: '/api/admin' });
+
+    // Worklog routes (user — auth inside route plugin)
+    await fastify.register(worklogRoutes, { prefix: '/api/worklogs' });
 
     return fastify;
 }
