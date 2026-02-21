@@ -4,6 +4,18 @@ export interface ApiResponse<T> {
     message?: string;
 }
 
+export interface Worklog {
+    id: string;
+    userId: string;
+    date: string;          // ISO date string, normalized to midnight UTC
+    tasks: string[];       // Each item = one task completed that day
+    hoursWorked: number;
+    status: 'draft' | 'submitted';
+    notes?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface User {
     id: string;
     name: string;

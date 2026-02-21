@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { User, AuthResponseData, LoginCredentials, ApiResponse } from './types';
+import { User, AuthResponseData, LoginCredentials, ApiResponse, Worklog } from './types';
 
 export interface CreateStudentRequest {
     aceId: string;
@@ -14,6 +14,19 @@ export interface CreateStudentRequest {
 export interface CreateStudentResponse {
     user: User;
     tempPassword: string;
+}
+
+export interface CreateWorklogRequest {
+    tasks: string[];
+    hoursWorked: number;
+    date?: string;   // ISO date, defaults to today on backend
+    notes?: string;
+}
+
+export interface UpdateWorklogRequest {
+    tasks?: string[];
+    hoursWorked?: number;
+    notes?: string;
 }
 import { logout, tokenReceived } from './authSlice';
 import { Mutex } from 'async-mutex';
@@ -166,6 +179,43 @@ export const apiService = createApi({
             }),
             transformResponse: (response: ApiResponse<{ message: string }>) => response.data,
         }),
+        // ─── Worklog Endpoints ───────────────────────────────────────
+        getMyWorklogs: builder.query<Worklog[], void>({
+            query: () => '/worklogs',
+            transformResponse: (response: ApiResponse<Worklog[]>) => response.data,
+            providesTags: ['Worklog'],
+        }),
+        getTodayWorklog: builder.query<Worklog | null, void>({
+            query: () => '/worklogs/today',
+            transformResponse: (response: ApiResponse<Worklog | null>) => response.data,
+            providesTags: ['Worklog'],
+        }),
+        createWorklog: builder.mutation<Worklog, CreateWorklogRequest>({
+            query: (body) => ({
+                url: '/worklogs',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<Worklog>) => response.data,
+            invalidatesTags: ['Worklog'],
+        }),
+        updateWorklog: builder.mutation<Worklog, { id: string; data: UpdateWorklogRequest }>({
+            query: ({ id, data }) => ({
+                url: `/worklogs/${id}`,
+                method: 'PATCH',
+                body: data,
+            }),
+            transformResponse: (response: ApiResponse<Worklog>) => response.data,
+            invalidatesTags: ['Worklog'],
+        }),
+        submitWorklog: builder.mutation<Worklog, string>({
+            query: (id) => ({
+                url: `/worklogs/${id}/submit`,
+                method: 'POST',
+            }),
+            transformResponse: (response: ApiResponse<Worklog>) => response.data,
+            invalidatesTags: ['Worklog'],
+        }),
     }),
 });
 
@@ -182,4 +232,9 @@ export const {
     useUpdateStudentMutation,
     useSendOtpMutation,
     useResetPasswordMutation,
+    useGetMyWorklogsQuery,
+    useGetTodayWorklogQuery,
+    useCreateWorklogMutation,
+    useUpdateWorklogMutation,
+    useSubmitWorklogMutation,
 } = apiService;
