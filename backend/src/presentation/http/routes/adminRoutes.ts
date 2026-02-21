@@ -9,8 +9,11 @@ import { GetMyWorklogs } from '../../../application/worklog/GetMyWorklogs.js';
 import { GetTodayWorklog } from '../../../application/worklog/GetTodayWorklog.js';
 import { GetAllWorklogs } from '../../../application/worklog/GetAllWorklogs.js';
 import { GetEnrichedWorklogs } from '../../../application/worklog/GetEnrichedWorklogs.js';
+import { ReportController } from '../controllers/ReportController.js';
+import { GetAllEnrichedReports } from '../../../application/report/GetAllEnrichedReports.js';
 import { userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 import { worklogRepository } from '../../../infrastructure/database/MongoWorklogRepository.js';
+import { reportRepository } from '../../../infrastructure/database/MongoReportRepository.js';
 import { emailService } from '../../../infrastructure/email/NodemailerEmailService.js';
 import { authenticate } from '../middleware/authenticate.js';
 
@@ -31,6 +34,12 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         new GetTodayWorklog(worklogRepository),
         new GetAllWorklogs(worklogRepository),
         new GetEnrichedWorklogs(worklogRepository, userRepository),
+    );
+
+    // Report Controller for admin (only needs GetAllEnrichedReports)
+    const reportController = new ReportController(
+        {} as any, {} as any, {} as any, // submit, getMyReports, delete
+        new GetAllEnrichedReports(reportRepository, userRepository)
     );
 
     // Instantiate controller
@@ -75,6 +84,11 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     // GET /api/admin/worklogs/:userId/date/:date
     fastify.get('/worklogs/:userId/date/:date', worklogController.adminGetByUserAndDate.bind(worklogController));
+
+    // ─── Admin Report Routes ─────────────────────────────────────────
+
+    // GET /api/admin/reports?type=X&userId=Y
+    fastify.get('/reports', reportController.adminGetAll.bind(reportController));
 };
 
 export default adminRoutes;
