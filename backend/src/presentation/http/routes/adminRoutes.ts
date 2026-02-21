@@ -8,6 +8,7 @@ import { SubmitWorklog } from '../../../application/worklog/SubmitWorklog.js';
 import { GetMyWorklogs } from '../../../application/worklog/GetMyWorklogs.js';
 import { GetTodayWorklog } from '../../../application/worklog/GetTodayWorklog.js';
 import { GetAllWorklogs } from '../../../application/worklog/GetAllWorklogs.js';
+import { GetEnrichedWorklogs } from '../../../application/worklog/GetEnrichedWorklogs.js';
 import { userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 import { worklogRepository } from '../../../infrastructure/database/MongoWorklogRepository.js';
 import { emailService } from '../../../infrastructure/email/NodemailerEmailService.js';
@@ -21,7 +22,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Instantiate use cases
     const createStudent = new CreateStudent(userRepository, emailService);
 
-    // Worklog use cases (admin uses GetAllWorklogs with filters)
+    // Worklog use cases (admin uses GetEnrichedWorklogs which joins user info)
     const worklogController = new WorklogController(
         new CreateWorklog(worklogRepository),
         new UpdateWorklog(worklogRepository),
@@ -29,6 +30,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         new GetMyWorklogs(worklogRepository),
         new GetTodayWorklog(worklogRepository),
         new GetAllWorklogs(worklogRepository),
+        new GetEnrichedWorklogs(worklogRepository, userRepository),
     );
 
     // Instantiate controller
