@@ -1,7 +1,15 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { AdminController } from '../controllers/AdminController.js';
+import { WorklogController } from '../controllers/WorklogController.js';
 import { CreateStudent, CreateStudentRequest } from '../../../application/admin/CreateStudent.js';
+import { CreateWorklog } from '../../../application/worklog/CreateWorklog.js';
+import { UpdateWorklog } from '../../../application/worklog/UpdateWorklog.js';
+import { SubmitWorklog } from '../../../application/worklog/SubmitWorklog.js';
+import { GetMyWorklogs } from '../../../application/worklog/GetMyWorklogs.js';
+import { GetTodayWorklog } from '../../../application/worklog/GetTodayWorklog.js';
+import { GetAllWorklogs } from '../../../application/worklog/GetAllWorklogs.js';
 import { userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
+import { worklogRepository } from '../../../infrastructure/database/MongoWorklogRepository.js';
 import { emailService } from '../../../infrastructure/email/NodemailerEmailService.js';
 import { authenticate } from '../middleware/authenticate.js';
 
@@ -12,6 +20,16 @@ import { authenticate } from '../middleware/authenticate.js';
 const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Instantiate use cases
     const createStudent = new CreateStudent(userRepository, emailService);
+
+    // Worklog use cases (admin uses GetAllWorklogs with filters)
+    const worklogController = new WorklogController(
+        new CreateWorklog(worklogRepository),
+        new UpdateWorklog(worklogRepository),
+        new SubmitWorklog(worklogRepository),
+        new GetMyWorklogs(worklogRepository),
+        new GetTodayWorklog(worklogRepository),
+        new GetAllWorklogs(worklogRepository),
+    );
 
     // Instantiate controller
     const adminController = new AdminController(createStudent, userRepository);
@@ -44,6 +62,17 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         '/students/:id',
         adminController.updateStudent.bind(adminController)
     );
+
+    // ─── Admin Worklog Routes ─────────────────────────────────────────
+
+    // GET /api/admin/worklogs?userId=X&date=Y&from=A&to=B&status=Z
+    fastify.get('/worklogs', worklogController.adminGetAll.bind(worklogController));
+
+    // GET /api/admin/worklogs/:userId
+    fastify.get('/worklogs/:userId', worklogController.adminGetByUser.bind(worklogController));
+
+    // GET /api/admin/worklogs/:userId/date/:date
+    fastify.get('/worklogs/:userId/date/:date', worklogController.adminGetByUserAndDate.bind(worklogController));
 };
 
 export default adminRoutes;
