@@ -56,16 +56,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
-} from "recharts";
+
 
 // ─── Mock Data ───
 interface AdminConcern {
@@ -138,7 +129,11 @@ const Admin = () => {
     const isAdmin = useAppSelector(selectIsAdmin);
     const { data: statsData } = useGetAdminStatsQuery();
     const { data: studentsData } = useGetAdminStudentsQuery({});
-    useGetAdminWorklogsQuery();
+    const [wlFilters, setWlFilters] = useState<{ status?: string; from?: string; to?: string }>({});
+    const { data: worklogsData, isLoading: wlLoading } = useGetAdminWorklogsQuery(
+        Object.values(wlFilters).some(Boolean) ? wlFilters : undefined
+    );
+    const worklogs = worklogsData ?? [];
     const { data: concernsData } = useGetAdminConcernsQuery();
     const { data: requestsData } = useGetAdminRequestsQuery();
 
@@ -618,19 +613,134 @@ const Admin = () => {
 
                 {/* ─── Worklogs Overview ─── */}
                 <TabsContent value="worklogs">
+                    {/* Filters */}
+                    <GlassCard className="mb-4 p-4">
+                        <div className="flex flex-wrap items-end gap-3">
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs text-muted-foreground uppercase tracking-wide">Status</label>
+                                <Select
+                                    value={wlFilters.status ?? "all"}
+                                    onValueChange={(v) =>
+                                        setWlFilters((f) => ({ ...f, status: v === "all" ? undefined : v }))
+                                    }
+                                >
+                                    <SelectTrigger className="h-9 w-36 glass-input">
+                                        <SelectValue placeholder="All" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All</SelectItem>
+                                        <SelectItem value="draft">Draft</SelectItem>
+                                        <SelectItem value="submitted">Submitted</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs text-muted-foreground uppercase tracking-wide">From</label>
+                                <Input
+                                    type="date"
+                                    className="h-9 glass-input w-40"
+                                    value={wlFilters.from ?? ""}
+                                    onChange={(e) =>
+                                        setWlFilters((f) => ({ ...f, from: e.target.value || undefined }))
+                                    }
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-xs text-muted-foreground uppercase tracking-wide">To</label>
+                                <Input
+                                    type="date"
+                                    className="h-9 glass-input w-40"
+                                    value={wlFilters.to ?? ""}
+                                    onChange={(e) =>
+                                        setWlFilters((f) => ({ ...f, to: e.target.value || undefined }))
+                                    }
+                                />
+                            </div>
+                            {Object.values(wlFilters).some(Boolean) && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setWlFilters({})}
+                                    className="h-9 text-muted-foreground"
+                                >
+                                    Clear
+                                </Button>
+                            )}
+                        </div>
+                    </GlassCard>
+
+                    {/* Table */}
                     <GlassCard>
-                        <h3 className="font-semibold text-foreground mb-4">Worklogs Across All Users</h3>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={students.filter((s: any) => s.status === "ongoing")}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                                <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                                <Tooltip contentStyle={{ background: "hsl(var(--glass-bg))", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }} />
-                                <Bar dataKey="worklogs" fill="hsl(80,60%,34%)" radius={[6, 6, 0, 0]} name="Worklogs" />
-                                <Bar dataKey="hoursThisWeek" fill="hsl(174,50%,42%)" radius={[6, 6, 0, 0]} name="Hours" />
-                                <Legend />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold text-foreground">Worklogs Across All Users</h3>
+                            <span className="text-xs text-muted-foreground">{worklogs.length} entries</span>
+                        </div>
+
+                        {wlLoading ? (
+                            <div className="py-12 text-center text-muted-foreground text-sm">Loading worklogs…</div>
+                        ) : worklogs.length === 0 ? (
+                            <div className="py-12 text-center">
+                                <FileText className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                                <p className="text-sm text-muted-foreground">No worklogs found for the selected filters.</p>
+                            </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>User ID</TableHead>
+                                        <TableHead>Tasks</TableHead>
+                                        <TableHead className="text-center">Hours</TableHead>
+                                        <TableHead className="text-center">Status</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {[...worklogs]
+                                        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                        .map((w: any) => (
+                                            <TableRow key={w.id}>
+                                                <TableCell className="text-sm font-medium whitespace-nowrap">
+                                                    {new Date(w.date).toLocaleDateString("en-IN", {
+                                                        day: "2-digit",
+                                                        month: "short",
+                                                        year: "numeric",
+                                                    })}
+                                                </TableCell>
+                                                <TableCell className="text-xs text-muted-foreground font-mono">
+                                                    {w.userId}
+                                                </TableCell>
+                                                <TableCell className="max-w-xs">
+                                                    <ul className="space-y-0.5">
+                                                        {(w.tasks as string[]).slice(0, 3).map((t: string, i: number) => (
+                                                            <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+                                                                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                                                                {t}
+                                                            </li>
+                                                        ))}
+                                                        {w.tasks.length > 3 && (
+                                                            <li className="text-xs text-muted-foreground pl-3">
+                                                                +{w.tasks.length - 3} more
+                                                            </li>
+                                                        )}
+                                                    </ul>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <span className="flex items-center justify-center gap-1 text-sm">
+                                                        <Clock className="h-3 w-3 text-muted-foreground" />
+                                                        {w.hoursWorked}h
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <StatusBadge
+                                                        status={w.status === "submitted" ? "success" : "pending"}
+                                                        label={w.status === "submitted" ? "Submitted" : "Draft"}
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                </TableBody>
+                            </Table>
+                        )}
                     </GlassCard>
                 </TabsContent>
 

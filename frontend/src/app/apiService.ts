@@ -130,9 +130,10 @@ export const apiService = createApi({
             transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
             providesTags: ['User'],
         }),
-        getAdminWorklogs: builder.query<any, void>({
-            query: () => '/admin/worklogs',
-            transformResponse: (response: ApiResponse<any>) => response.data,
+        getAdminWorklogs: builder.query<Worklog[], { userId?: string; status?: string; from?: string; to?: string } | void>({
+            query: (params) => ({ url: '/admin/worklogs', params: params ?? {} }),
+            transformResponse: (response: ApiResponse<Worklog[]>) => response.data,
+            providesTags: ['Worklog'],
         }),
         getAdminConcerns: builder.query<any, void>({
             query: () => '/admin/concerns',
