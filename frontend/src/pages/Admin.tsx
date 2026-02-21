@@ -688,7 +688,7 @@ const Admin = () => {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Date</TableHead>
-                                        <TableHead>User ID</TableHead>
+                                        <TableHead>Student</TableHead>
                                         <TableHead>Tasks</TableHead>
                                         <TableHead className="text-center">Hours</TableHead>
                                         <TableHead className="text-center">Status</TableHead>
@@ -706,8 +706,16 @@ const Admin = () => {
                                                         year: "numeric",
                                                     })}
                                                 </TableCell>
-                                                <TableCell className="text-xs text-muted-foreground font-mono">
-                                                    {w.userId}
+                                                <TableCell>
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-sm font-medium text-foreground">
+                                                            {w.userName ?? <span className="text-muted-foreground italic">Unknown</span>}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                            {w.aceId && <span>#{w.aceId}</span>}
+                                                            {w.batch && <span>· {w.batch}</span>}
+                                                        </div>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="max-w-xs">
                                                     <ul className="space-y-0.5">

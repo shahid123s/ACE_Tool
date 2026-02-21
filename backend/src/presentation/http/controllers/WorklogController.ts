@@ -5,10 +5,13 @@ import { SubmitWorklog } from '../../../application/worklog/SubmitWorklog.js';
 import { GetMyWorklogs } from '../../../application/worklog/GetMyWorklogs.js';
 import { GetTodayWorklog } from '../../../application/worklog/GetTodayWorklog.js';
 import { GetAllWorklogs, GetAllWorklogsRequest } from '../../../application/worklog/GetAllWorklogs.js';
+import { GetEnrichedWorklogs } from '../../../application/worklog/GetEnrichedWorklogs.js';
 
 /**
  * Worklog Controller
- * Handles HTTP requests for both user and admin worklog routes
+ * Handles HTTP requests for both user and admin worklog routes.
+ * Admin routes delegate to GetEnrichedWorklogs (which joins user data).
+ * User routes use lightweight use cases with no cross-domain joins.
  */
 export class WorklogController {
     constructor(
@@ -18,7 +21,9 @@ export class WorklogController {
         private readonly getMyWorklogs: GetMyWorklogs,
         private readonly getTodayWorklog: GetTodayWorklog,
         private readonly getAllWorklogs: GetAllWorklogs,
+        private readonly getEnrichedWorklogs?: GetEnrichedWorklogs,
     ) { }
+
 
     // ─── User Handlers ──────────────────────────────────────────────
 
@@ -112,15 +117,17 @@ export class WorklogController {
 
     /**
      * GET /api/admin/worklogs
-     * Admin: get all worklogs with optional query filters
+     * Admin: get all worklogs with optional query filters.
+     * Delegates enrichment (name, aceId, batch) to GetEnrichedWorklogs use case.
      */
     async adminGetAll(
-        request: FastifyRequest<{ Querystring: GetAllWorklogsRequest }>,
+        request: FastifyRequest<{ Querystring: GetAllWorklogsRequest & { userId?: string } }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
+        if (!this.getEnrichedWorklogs) return reply.status(501).send({ success: false, message: 'Not configured' });
         try {
-            const result = await this.getAllWorklogs.execute(request.query);
-            return reply.send({ success: true, data: result });
+            const data = await this.getEnrichedWorklogs.execute(request.query);
+            return reply.send({ success: true, data });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
         }
@@ -128,15 +135,16 @@ export class WorklogController {
 
     /**
      * GET /api/admin/worklogs/:userId
-     * Admin: get all worklogs for a specific user
+     * Admin: get all worklogs for a specific user.
      */
     async adminGetByUser(
         request: FastifyRequest<{ Params: { userId: string } }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
+        if (!this.getEnrichedWorklogs) return reply.status(501).send({ success: false, message: 'Not configured' });
         try {
-            const result = await this.getAllWorklogs.execute({ userId: request.params.userId });
-            return reply.send({ success: true, data: result });
+            const data = await this.getEnrichedWorklogs.execute({ userId: request.params.userId });
+            return reply.send({ success: true, data });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
         }
@@ -144,18 +152,20 @@ export class WorklogController {
 
     /**
      * GET /api/admin/worklogs/:userId/date/:date
-     * Admin: get worklog for a specific user on a specific date
+     * Admin: get worklog for a specific user on a specific date.
      */
     async adminGetByUserAndDate(
         request: FastifyRequest<{ Params: { userId: string; date: string } }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
+        if (!this.getEnrichedWorklogs) return reply.status(501).send({ success: false, message: 'Not configured' });
         try {
             const { userId, date } = request.params;
-            const result = await this.getAllWorklogs.execute({ userId, date });
-            return reply.send({ success: true, data: result });
+            const data = await this.getEnrichedWorklogs.execute({ userId, date });
+            return reply.send({ success: true, data });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
         }
     }
 }
+
