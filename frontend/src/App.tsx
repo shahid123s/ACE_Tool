@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Worklogs from "./pages/Worklogs";
 import Reports from "./pages/Reports";
+import BlogPosts from "./pages/BlogPosts";
 import NotFound from "./pages/NotFound";
 import { Toaster } from 'sonner';
 import { useAppSelector, useAppDispatch } from "./app/hooks";
@@ -78,6 +79,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Reports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blogs"
+            element={
+              <ProtectedRoute>
+                <BlogPosts />
               </ProtectedRoute>
             }
           />
