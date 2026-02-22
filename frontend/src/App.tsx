@@ -10,6 +10,11 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Worklogs from "./pages/Worklogs";
 import Reports from "./pages/Reports";
 import BlogPosts from "./pages/BlogPosts";
+import LeetCode from './pages/LeetCode';
+import Meetings from './pages/Meetings';
+import Concerns from './pages/Concerns';
+import Requests from './pages/Requests';
+import Attendance from './pages/Attendance';
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -82,6 +87,11 @@ function App() {
           <Route path="/worklogs" element={<ProtectedRoute><Worklogs /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
           <Route path="/blogs" element={<ProtectedRoute><BlogPosts /></ProtectedRoute>} />
+          <Route path="/leetcode" element={<ProtectedRoute><LeetCode /></ProtectedRoute>} />
+          <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
+          <Route path="/concerns" element={<ProtectedRoute><Concerns /></ProtectedRoute>} />
+          <Route path="/requests" element={<ProtectedRoute><Requests /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
 
           {/* ─── Admin routes ─── */}
           <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
