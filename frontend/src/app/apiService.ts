@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { User, AuthResponseData, LoginCredentials, ApiResponse, Worklog } from './types';
+import { User, AuthResponseData, LoginCredentials, ApiResponse, Worklog, Report, EnrichedReport } from './types';
 
 export interface CreateStudentRequest {
     aceId: string;
@@ -98,7 +98,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const apiService = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request'],
+    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request', 'Report'],
     endpoints: (builder) => ({
         login: builder.mutation<AuthResponseData, LoginCredentials>({
             query: (credentials) => ({
@@ -134,6 +134,11 @@ export const apiService = createApi({
             query: (params) => ({ url: '/admin/worklogs', params: params ?? {} }),
             transformResponse: (response: ApiResponse<Worklog[]>) => response.data,
             providesTags: ['Worklog'],
+        }),
+        getAdminReports: builder.query<EnrichedReport[], { type?: 'weekly' | 'monthly'; userId?: string } | void>({
+            query: (params) => ({ url: '/admin/reports', params: params ?? {} }),
+            transformResponse: (response: ApiResponse<EnrichedReport[]>) => response.data,
+            providesTags: ['Report'],
         }),
         getAdminConcerns: builder.query<any, void>({
             query: () => '/admin/concerns',
@@ -217,6 +222,27 @@ export const apiService = createApi({
             transformResponse: (response: ApiResponse<Worklog>) => response.data,
             invalidatesTags: ['Worklog'],
         }),
+        // ─── Report Endpoints (User) ─────────────────────────────────
+        getMyReports: builder.query<Report[], { type?: 'weekly' | 'monthly' } | void>({
+            query: (params) => ({ url: '/reports', params: params ?? {} }),
+            transformResponse: (response: ApiResponse<Report[]>) => response.data,
+            providesTags: ['Report'],
+        }),
+        submitReport: builder.mutation<Report, { type: 'weekly' | 'monthly', period: string, driveLink: string }>({
+            query: (body) => ({
+                url: '/reports',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Report'],
+        }),
+        deleteReport: builder.mutation<void, string>({
+            query: (id) => ({
+                url: `/reports/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['Report'],
+        }),
     }),
 });
 
@@ -238,4 +264,8 @@ export const {
     useCreateWorklogMutation,
     useUpdateWorklogMutation,
     useSubmitWorklogMutation,
+    useGetAdminReportsQuery,
+    useGetMyReportsQuery,
+    useSubmitReportMutation,
+    useDeleteReportMutation,
 } = apiService;

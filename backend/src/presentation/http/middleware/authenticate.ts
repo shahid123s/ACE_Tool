@@ -8,6 +8,7 @@ declare module 'fastify' {
             id: string;
             email: string;
             role: string;
+            aceId?: string;
         };
     }
 }
@@ -29,7 +30,8 @@ export const authenticate = async (request: FastifyRequest, reply: FastifyReply)
         request.user = {
             id: decoded.sub || decoded.id, // Support standard 'sub' or custom 'id'
             email: decoded.email,
-            role: decoded.role
+            role: decoded.role,
+            aceId: decoded.aceId || '',
         };
 
     } catch (error) {

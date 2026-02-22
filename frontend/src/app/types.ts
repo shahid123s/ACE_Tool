@@ -39,3 +39,18 @@ export interface LoginCredentials {
     email: string;
     password: string;
 }
+
+export interface Report {
+    id: string;
+    userId: string;
+    type: 'weekly' | 'monthly';
+    period: string;
+    driveLink: string;
+    createdAt: string;
+}
+
+export interface EnrichedReport extends Report {
+    userName?: string;
+    aceId?: string;
+    batch?: string;
+}
