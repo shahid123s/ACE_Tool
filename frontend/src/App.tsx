@@ -13,14 +13,16 @@ import BlogPosts from "./pages/BlogPosts";
 import NotFound from "./pages/NotFound";
 import { Toaster } from 'sonner';
 import { useAppSelector, useAppDispatch } from "./app/hooks";
-import { selectIsAuthenticated, logout, setCredentials } from "./app/authSlice";
+import { selectIsAuthenticated, selectIsAdmin, logout, setCredentials } from "./app/authSlice";
 import { useGetMeQuery } from "./app/apiService";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
+// ─── Student / general protected route ───────────────────────────────────────
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const isAdmin = useAppSelector(selectIsAdmin);
   const { data, isLoading, error } = useGetMeQuery(undefined, {
     skip: !isAuthenticated,
   });
@@ -35,10 +37,33 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [data, error, dispatch]);
 
   if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  console.log(isAuthenticated)
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Redirect admins away from student pages to the admin panel
+  if (isAdmin) return <Navigate to="/admin" replace />;
+
+  return <>{children}</>;
+};
+
+// ─── Admin-only protected route ───────────────────────────────────────────────
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const isAdmin = useAppSelector(selectIsAdmin);
+  const { data, isLoading, error } = useGetMeQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (error) {
+      dispatch(logout());
+    } else if (data) {
+      dispatch(setCredentials({ user: data.user, accessToken: localStorage.getItem('accessToken') || '' }));
+    }
+  }, [data, error, dispatch]);
+
+  if (isLoading && isAuthenticated) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 };
@@ -48,48 +73,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <Admin />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/worklogs"
-            element={
-              <ProtectedRoute>
-                <Worklogs />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <Reports />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/blogs"
-            element={
-              <ProtectedRoute>
-                <BlogPosts />
-              </ProtectedRoute>
-            }
-          />
+
+          {/* ─── Student routes ─── */}
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/worklogs" element={<ProtectedRoute><Worklogs /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+          <Route path="/blogs" element={<ProtectedRoute><BlogPosts /></ProtectedRoute>} />
+
+          {/* ─── Admin routes (admin-only) ─── */}
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          <Route path="/admin/*" element={<AdminRoute><Admin /></AdminRoute>} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

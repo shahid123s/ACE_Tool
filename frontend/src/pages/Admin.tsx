@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { StatCard } from "@/components/shared/StatCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -262,7 +262,7 @@ const Admin = () => {
     const totalWorklogs = students.reduce((sum: number, s: any) => sum + (s.worklogs || 0), 0);
 
     return (
-        <DashboardLayout>
+        <AdminLayout>
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
                 <p className="text-sm text-muted-foreground mt-1">Manage trainees, track performance, and handle requests</p>
@@ -1298,7 +1298,7 @@ const Admin = () => {
                     </GlassCard>
                 </TabsContent>
             </Tabs>
-        </DashboardLayout >
+        </AdminLayout>
     );
 };
 
