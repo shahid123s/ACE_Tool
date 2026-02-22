@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 export interface ReportProps {
     id?: string;
     userId: string;
+    aceId?: string;
     type: 'weekly' | 'monthly';
     period: string;
     driveLink: string;
@@ -12,6 +13,7 @@ export interface ReportProps {
 export interface ReportDTO {
     id: string;
     userId: string;
+    aceId: string;
     type: 'weekly' | 'monthly';
     period: string;
     driveLink: string;
@@ -21,6 +23,7 @@ export interface ReportDTO {
 export class Report {
     public readonly id: string;
     public readonly userId: string;
+    public readonly aceId: string;
     public readonly type: 'weekly' | 'monthly';
     public readonly period: string;
     public readonly driveLink: string;
@@ -29,6 +32,7 @@ export class Report {
     constructor(props: ReportProps) {
         this.id = props.id || new ObjectId().toString();
         this.userId = props.userId;
+        this.aceId = props.aceId || '';
         this.type = props.type;
         this.period = props.period;
         this.driveLink = props.driveLink;
@@ -54,6 +58,7 @@ export class Report {
         return {
             id: this.id,
             userId: this.userId,
+            aceId: this.aceId,
             type: this.type,
             period: this.period,
             driveLink: this.driveLink,

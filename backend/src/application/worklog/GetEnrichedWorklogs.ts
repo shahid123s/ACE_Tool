@@ -63,9 +63,9 @@ export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest,
             const user = userMap.get(w.userId);
             return {
                 ...dto,
-                userName: user?.name,
-                aceId: user?.aceId,
-                batch: user?.batch,
+                userName: user?.name || "Unknown",
+                aceId: user?.aceId || "",
+                batch: user?.batch || "",
             };
         });
     }

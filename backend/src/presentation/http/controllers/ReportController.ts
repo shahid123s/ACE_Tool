@@ -15,12 +15,13 @@ export class ReportController {
     // ─── User Handlers ──────────────────────────────────────────────
 
     async submit(
-        request: FastifyRequest<{ Body: Omit<SubmitReportRequest, 'userId'> }>,
+        request: FastifyRequest<{ Body: Omit<SubmitReportRequest, 'userId' | 'aceId'> }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
         try {
             const userId = request.user!.id;
-            const result = await this.submitReport.execute({ ...request.body, userId });
+            const aceId = request.user!.aceId || '';
+            const result = await this.submitReport.execute({ ...request.body, userId, aceId });
             return reply.status(201).send({ success: true, data: result });
         } catch (error: any) {
             const statusCode = error.statusCode || 400;

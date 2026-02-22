@@ -11,6 +11,7 @@ export class TokenService {
                 sub: user.id, // Subject (User ID)
                 email: user.email,
                 role: user.role,
+                aceId: user.aceId || '',
                 iss: 'ace-platform',
                 aud: 'ace-frontend'
             },

@@ -10,8 +10,6 @@ export interface GetAllEnrichedReportsFilters {
 
 export interface EnrichedReportDTO extends ReportDTO {
     userName?: string;
-    aceId?: string;
-    batch?: string;
 }
 
 export class GetAllEnrichedReports implements IUseCase<GetAllEnrichedReportsFilters, EnrichedReportDTO[]> {
@@ -37,9 +35,9 @@ export class GetAllEnrichedReports implements IUseCase<GetAllEnrichedReportsFilt
             const user = userMap.get(r.userId);
             return {
                 ...dto,
-                userName: user?.name,
-                aceId: user?.aceId,
-                batch: user?.batch,
+                userName: user?.name || "Unknown",
+                aceId: user?.aceId || "",
+                batch: user?.batch || "",
             };
         });
     }

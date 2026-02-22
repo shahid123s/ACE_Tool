@@ -28,6 +28,7 @@ export class MongoReportRepository implements IReportRepository {
     async save(report: Report): Promise<Report> {
         const data = {
             userId: report.userId,
+            aceId: report.aceId,
             type: report.type,
             period: report.period,
             driveLink: report.driveLink,
@@ -51,6 +52,7 @@ export class MongoReportRepository implements IReportRepository {
         return new Report({
             id: doc._id.toString(),
             userId: doc.userId.toString(),
+            aceId: doc.aceId || '',
             type: doc.type,
             period: doc.period,
             driveLink: doc.driveLink,

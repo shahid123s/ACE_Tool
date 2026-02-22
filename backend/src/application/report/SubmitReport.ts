@@ -4,6 +4,7 @@ import { IUseCase } from '../interfaces.js';
 
 export interface SubmitReportRequest {
     userId: string;
+    aceId?: string;
     type: 'weekly' | 'monthly';
     period: string;
     driveLink: string;
@@ -20,6 +21,7 @@ export class SubmitReport implements IUseCase<SubmitReportRequest, ReportDTO> {
 
         const report = new Report({
             userId: request.userId,
+            aceId: request.aceId || '',
             type: request.type,
             period: request.period,
             driveLink: request.driveLink,
