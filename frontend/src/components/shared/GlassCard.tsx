@@ -7,12 +7,11 @@ interface GlassCardProps {
     hover?: boolean;
 }
 
-export function GlassCard({ children, className, hover = true }: GlassCardProps) {
+export function GlassCard({ children, className }: GlassCardProps) {
     return (
         <div
             className={cn(
                 "glass-card rounded-xl p-6 animate-fade-up opacity-0",
-                hover && "hover:scale-[1.02]",
                 className
             )}
             style={{ animationFillMode: "forwards" }}

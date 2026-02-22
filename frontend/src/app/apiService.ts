@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { User, AuthResponseData, LoginCredentials, ApiResponse, Worklog, Report, EnrichedReport } from './types';
+import { User, AuthResponseData, LoginCredentials, ApiResponse, Worklog, Report, EnrichedReport, BlogPost, BlogPlatform, EnrichedBlogPost } from './types';
 
 export interface CreateStudentRequest {
     aceId: string;
@@ -98,7 +98,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const apiService = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request', 'Report'],
+    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request', 'Report', 'BlogPost'],
     endpoints: (builder) => ({
         login: builder.mutation<AuthResponseData, LoginCredentials>({
             query: (credentials) => ({
@@ -243,6 +243,32 @@ export const apiService = createApi({
             }),
             invalidatesTags: ['Report'],
         }),
+
+        // ─── Blog Post Endpoints (User) ───────────────────────────────
+        getMyBlogPosts: builder.query<BlogPost[], void>({
+            query: () => ({ url: '/blogposts' }),
+            transformResponse: (response: ApiResponse<BlogPost[]>) => response.data,
+            providesTags: ['BlogPost'],
+        }),
+        submitBlogPost: builder.mutation<BlogPost, { title: string; link: string; platform: BlogPlatform }>({
+            query: (body) => ({ url: '/blogposts', method: 'POST', body }),
+            invalidatesTags: ['BlogPost'],
+        }),
+        deleteBlogPost: builder.mutation<void, string>({
+            query: (id) => ({ url: `/blogposts/${id}`, method: 'DELETE' }),
+            invalidatesTags: ['BlogPost'],
+        }),
+
+        // ─── Blog Post Endpoints (Admin) ──────────────────────────────
+        getAdminBlogPosts: builder.query<EnrichedBlogPost[], void>({
+            query: () => ({ url: '/admin/blogposts' }),
+            transformResponse: (response: ApiResponse<EnrichedBlogPost[]>) => response.data,
+            providesTags: ['BlogPost'],
+        }),
+        scoreAdminBlogPost: builder.mutation<BlogPost, { id: string; score: number }>({
+            query: ({ id, score }) => ({ url: `/admin/blogposts/${id}/score`, method: 'POST', body: { score } }),
+            invalidatesTags: ['BlogPost'],
+        }),
     }),
 });
 
@@ -268,4 +294,9 @@ export const {
     useGetMyReportsQuery,
     useSubmitReportMutation,
     useDeleteReportMutation,
+    useGetMyBlogPostsQuery,
+    useSubmitBlogPostMutation,
+    useDeleteBlogPostMutation,
+    useGetAdminBlogPostsQuery,
+    useScoreAdminBlogPostMutation,
 } = apiService;

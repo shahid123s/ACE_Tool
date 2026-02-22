@@ -54,3 +54,29 @@ export interface EnrichedReport extends Report {
     aceId?: string;
     batch?: string;
 }
+
+export type BlogPlatform = 'linkedin' | 'x' | 'devto' | 'medium' | 'hashnode' | 'other';
+
+export interface AdminScore {
+    adminId: string;
+    adminName: string;
+    score: number;
+    scoredAt: string;
+}
+
+export interface BlogPost {
+    id: string;
+    userId: string;
+    aceId: string;
+    title: string;
+    link: string;
+    platform: BlogPlatform;
+    submittedAt: string;
+    scores: AdminScore[];
+    averageScore: number;
+}
+
+export interface EnrichedBlogPost extends BlogPost {
+    userName: string;
+}
+

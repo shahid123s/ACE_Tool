@@ -11,9 +11,16 @@ import { GetAllWorklogs } from '../../../application/worklog/GetAllWorklogs.js';
 import { GetEnrichedWorklogs } from '../../../application/worklog/GetEnrichedWorklogs.js';
 import { ReportController } from '../controllers/ReportController.js';
 import { GetAllEnrichedReports } from '../../../application/report/GetAllEnrichedReports.js';
+import { BlogPostController } from '../controllers/BlogPostController.js';
+import { GetAllEnrichedBlogPosts } from '../../../application/blogpost/GetAllEnrichedBlogPosts.js';
+import { ScoreBlogPost } from '../../../application/blogpost/ScoreBlogPost.js';
+import { DeleteBlogPost } from '../../../application/blogpost/DeleteBlogPost.js';
+import { SubmitBlogPost } from '../../../application/blogpost/SubmitBlogPost.js';
+import { GetMyBlogPosts } from '../../../application/blogpost/GetMyBlogPosts.js';
 import { userRepository } from '../../../infrastructure/database/MongoUserRepository.js';
 import { worklogRepository } from '../../../infrastructure/database/MongoWorklogRepository.js';
 import { reportRepository } from '../../../infrastructure/database/MongoReportRepository.js';
+import { blogPostRepository } from '../../../infrastructure/database/MongoBlogPostRepository.js';
 import { emailService } from '../../../infrastructure/email/NodemailerEmailService.js';
 import { authenticate } from '../middleware/authenticate.js';
 
@@ -40,6 +47,15 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const reportController = new ReportController(
         {} as any, {} as any, {} as any, // submit, getMyReports, delete
         new GetAllEnrichedReports(reportRepository, userRepository)
+    );
+
+    // Blog Post Controller for admin
+    const blogPostController = new BlogPostController(
+        new SubmitBlogPost(blogPostRepository),
+        new GetMyBlogPosts(blogPostRepository),
+        new DeleteBlogPost(blogPostRepository),
+        new GetAllEnrichedBlogPosts(blogPostRepository, userRepository),
+        new ScoreBlogPost(blogPostRepository),
     );
 
     // Instantiate controller
@@ -89,6 +105,23 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
     // GET /api/admin/reports?type=X&userId=Y
     fastify.get('/reports', reportController.adminGetAll.bind(reportController));
+
+    // ─── Admin Blog Post Routes ──────────────────────────────────────
+
+    // GET /api/admin/blogposts?platform=X&userId=Y
+    fastify.get('/blogposts', blogPostController.adminGetAll.bind(blogPostController));
+
+    // POST /api/admin/blogposts/:id/score — admin scores a post
+    fastify.post<{ Params: { id: string }, Body: { score: number } }>(
+        '/blogposts/:id/score',
+        blogPostController.adminScore.bind(blogPostController)
+    );
+
+    // DELETE /api/admin/blogposts/:id — admin deletes a post
+    fastify.delete(
+        '/blogposts/:id',
+        blogPostController.delete.bind(blogPostController)
+    );
 };
 
 export default adminRoutes;
