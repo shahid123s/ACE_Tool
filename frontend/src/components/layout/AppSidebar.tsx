@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAppDispatch } from "@/app/hooks";
+import { logout } from "@/app/authSlice";
 import {
     LayoutDashboard,
     Clock,
@@ -13,6 +15,7 @@ import {
     ListTodo,
     ChevronLeft,
     ChevronRight,
+    LogOut,
 } from "lucide-react";
 
 const userNav = [
@@ -29,6 +32,13 @@ const userNav = [
 
 export function AppSidebar() {
     const [collapsed, setCollapsed] = useState(false);
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate("/login");
+    };
 
     return (
         <aside
@@ -72,10 +82,24 @@ export function AppSidebar() {
                 ))}
             </nav>
 
+            {/* Logout */}
+            <div className="border-t border-border/50">
+                <button
+                    onClick={handleLogout}
+                    className={cn(
+                        "flex items-center gap-3 w-full px-5 py-3.5 text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors",
+                        collapsed && "justify-center px-0"
+                    )}
+                >
+                    <LogOut className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Logout</span>}
+                </button>
+            </div>
+
             {/* Collapse toggle */}
             <button
                 onClick={() => setCollapsed((c) => !c)}
-                className="h-12 flex items-center justify-center border-t border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+                className="h-12 flex items-center justify-center border-t border-border/50 text-muted-foreground hover:text-foreground transition-colors shrink-0"
             >
                 {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </button>
