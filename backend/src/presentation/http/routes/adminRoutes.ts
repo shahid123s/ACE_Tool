@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { AdminController } from '../controllers/AdminController.js';
 import { WorklogController } from '../controllers/WorklogController.js';
 import { CreateStudent, CreateStudentRequest } from '../../../application/admin/CreateStudent.js';
+import { CreateStudentsBulk, CreateStudentsBulkRequest } from '../../../application/admin/CreateStudentsBulk.js';
 import { CreateWorklog } from '../../../application/worklog/CreateWorklog.js';
 import { UpdateWorklog } from '../../../application/worklog/UpdateWorklog.js';
 import { SubmitWorklog } from '../../../application/worklog/SubmitWorklog.js';
@@ -31,6 +32,7 @@ import { authenticate } from '../middleware/authenticate.js';
 const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Instantiate use cases
     const createStudent = new CreateStudent(userRepository, emailService);
+    const createStudentsBulk = new CreateStudentsBulk(userRepository, emailService);
 
     // Worklog use cases (admin uses GetEnrichedWorklogs which joins user info)
     const worklogController = new WorklogController(
@@ -59,7 +61,7 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     );
 
     // Instantiate controller
-    const adminController = new AdminController(createStudent, userRepository);
+    const adminController = new AdminController(createStudent, createStudentsBulk, userRepository);
 
     // Middleware: authenticate + admin check on all routes
     fastify.addHook('preHandler', async (request, reply) => {
@@ -78,6 +80,11 @@ const adminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     fastify.post<{ Body: CreateStudentRequest }>(
         '/students',
         adminController.createStudent.bind(adminController)
+    );
+
+    fastify.post<{ Body: CreateStudentsBulkRequest }>(
+        '/students/bulk',
+        adminController.createStudentsBulk.bind(adminController)
     );
 
     fastify.get(
