@@ -10,7 +10,7 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: false },
-    role: { type: String, required: true, enum: ['user', 'admin'], default: 'user' },
+    role: { type: String, required: true, enum: ['user', 'admin', 'superadmin'], default: 'user' },
     aceId: { type: String, unique: true, sparse: true },
     phone: { type: String },
     batch: { type: String },

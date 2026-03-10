@@ -9,7 +9,7 @@ export interface UserProps {
     name: string;
     email: string;
     password?: string;
-    role?: 'user' | 'admin';
+    role?: 'user' | 'admin' | 'superadmin';
     aceId?: string;
     phone?: string;
     batch?: string;
@@ -24,7 +24,7 @@ export interface UserDTO {
     id: string;
     name: string;
     email: string;
-    role: 'user' | 'admin';
+    role: 'user' | 'admin' | 'superadmin';
     aceId?: string;
     phone?: string;
     batch?: string;
@@ -40,7 +40,7 @@ export class User {
     public name: string;
     public readonly email: string;
     public readonly password?: string; // Hashed password
-    public readonly role: 'user' | 'admin';
+    public readonly role: 'user' | 'admin' | 'superadmin';
     public readonly aceId?: string;
     public readonly phone?: string;
     public readonly batch?: string;

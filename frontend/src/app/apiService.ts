@@ -98,7 +98,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const apiService = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request', 'Report', 'BlogPost'],
+    tagTypes: ['User', 'Worklog', 'Meeting', 'Concern', 'Request', 'Report', 'BlogPost', 'Admin'],
     endpoints: (builder) => ({
         login: builder.mutation<AuthResponseData, LoginCredentials>({
             query: (credentials) => ({
@@ -269,6 +269,30 @@ export const apiService = createApi({
             query: ({ id, score }) => ({ url: `/admin/blogposts/${id}/score`, method: 'POST', body: { score } }),
             invalidatesTags: ['BlogPost'],
         }),
+
+        // ─── SuperAdmin Endpoints ─────────────────────────────────────
+        getSuperAdminAdmins: builder.query<{ admins: User[] }, void>({
+            query: () => ({ url: '/superadmin/admins' }),
+            transformResponse: (response: ApiResponse<{ admins: User[] }>) => response.data,
+            providesTags: ['Admin'],
+        }),
+        initiateAdminCreation: builder.mutation<{ message: string }, { name: string; email: string }>({
+            query: (body) => ({
+                url: '/superadmin/admins/initiate',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<{ message: string }>) => response.data,
+        }),
+        confirmAdminCreation: builder.mutation<{ user: User; tempPassword: string }, { otp: string }>({
+            query: (body) => ({
+                url: '/superadmin/admins/confirm',
+                method: 'POST',
+                body,
+            }),
+            transformResponse: (response: ApiResponse<{ user: User; tempPassword: string }>) => response.data,
+            invalidatesTags: ['Admin'],
+        }),
     }),
 });
 
@@ -299,4 +323,7 @@ export const {
     useDeleteBlogPostMutation,
     useGetAdminBlogPostsQuery,
     useScoreAdminBlogPostMutation,
+    useGetSuperAdminAdminsQuery,
+    useInitiateAdminCreationMutation,
+    useConfirmAdminCreationMutation,
 } = apiService;

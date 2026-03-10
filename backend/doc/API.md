@@ -4,11 +4,15 @@ This document serves as a reference for the Backend API, detailing the REST endp
 
 ## 🔐 Credentials & Authentication
 
-### Default Admin User
-When the system starts with an empty database, a default admin user is seeded:
-- **Email:** `admin@ace.com`
-- **Password:** `password`
-- **Role:** `admin`
+### SuperAdmin Account (Seeded on Startup)
+The SuperAdmin is the highest-privilege user and is automatically seeded when the database is empty.
+| Field | Value |
+| :--- | :--- |
+| **Email** | `brototype.studentexcellence@gmail.com` |
+| **Password** | `Brototype@SET#123` |
+| **Role** | `superadmin` |
+
+> **Note:** The SuperAdmin account is the only account that can create new `admin` users. This flow requires OTP verification sent to the SuperAdmin's email.
 
 ### Authentication Mechanism (Dual Token Architecture)
 - **Access Token (JWT)**: Short-lived (15 mins), sent in JSON response body. Required for authenticated API access via the `Authorization: Bearer <token>` header.
@@ -169,3 +173,65 @@ When the system starts with an empty database, a default admin user is seeded:
 #### Queries
 - **Get My Blog Posts**: `GET /`
 - **Delete Blog Post**: `DELETE /:id`
+
+---
+
+### 👑 SuperAdmin (`/api/superadmin`)
+*All SuperAdmin routes require Authentication AND the `superadmin` role. A `403 Forbidden` is returned for any other role.*
+
+#### Initiate Admin Creation (Step 1)
+- **URL**: `POST /admins/initiate`
+- **Description**: Starts the OTP-gated admin creation flow. Stores the new admin's details temporarily in Redis (15-min TTL) and sends a 6-digit OTP to the SuperAdmin's own email.
+- **Auth Required**: Yes — `superadmin` role
+- **Body**:
+  ```json
+  { "name": "John Admin", "email": "john@ace.com" }
+  ```
+- **Response**:
+  ```json
+  { "success": true, "data": { "message": "OTP sent to your (SuperAdmin) email. Use it to confirm admin creation." } }
+  ```
+
+#### Confirm Admin Creation (Step 2)
+- **URL**: `POST /admins/confirm`
+- **Description**: Verifies the OTP, creates the admin account, cleans up Redis, and emails the new admin their credentials. The OTP is single-use with a 15-minute TTL.
+- **Auth Required**: Yes — `superadmin` role
+- **Body**:
+  ```json
+  { "otp": "123456" }
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "user": { "id": "...", "name": "John Admin", "email": "john@ace.com", "role": "admin", ... },
+      "tempPassword": "Admin@xxxxxxxx"
+    }
+  }
+  ```
+
+#### List All Admins
+- **URL**: `GET /admins`
+- **Description**: Returns all users with the `admin` role.
+- **Auth Required**: Yes — `superadmin` role
+- **Response**: `{ "success": true, "data": { "admins": [ ... ] } }`
+
+---
+
+#### 🔄 Full Admin Creation Flow
+
+```
+1. Login as SuperAdmin → obtain accessToken
+
+2. POST /api/superadmin/admins/initiate
+   Authorization: Bearer <superadmin-token>
+   Body: { "name": "John Admin", "email": "john@ace.com" }
+   ← OTP is emailed to brototype.studentexcellence@gmail.com
+
+3. POST /api/superadmin/admins/confirm
+   Authorization: Bearer <superadmin-token>
+   Body: { "otp": "123456" }
+   ← Admin account created
+   ← Credentials emailed to john@ace.com
+```

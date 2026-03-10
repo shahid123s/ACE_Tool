@@ -27,6 +27,7 @@ import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminConcerns from "./pages/admin/AdminConcerns";
 import AdminRequests from "./pages/admin/AdminRequests";
 import AdminAlerts from "./pages/admin/AdminAlerts";
+import SuperAdminAdmins from "./pages/admin/SuperAdminAdmins";
 
 import { Toaster } from 'sonner';
 import { useAppSelector, useAppDispatch } from "./app/hooks";
@@ -103,6 +104,7 @@ function App() {
           <Route path="/admin/concerns" element={<AdminRoute><AdminConcerns /></AdminRoute>} />
           <Route path="/admin/requests" element={<AdminRoute><AdminRequests /></AdminRoute>} />
           <Route path="/admin/alerts" element={<AdminRoute><AdminAlerts /></AdminRoute>} />
+          <Route path="/admin/admins" element={<AdminRoute><SuperAdminAdmins /></AdminRoute>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

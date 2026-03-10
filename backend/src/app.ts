@@ -9,6 +9,7 @@ import adminRoutes from './presentation/http/routes/adminRoutes.js';
 import worklogRoutes from './presentation/http/routes/worklogRoutes.js';
 import reportRoutes from './presentation/http/routes/reportRoutes.js';
 import blogPostRoutes from './presentation/http/routes/blogPostRoutes.js';
+import superAdminRoutes from './presentation/http/routes/superAdminRoutes.js';
 
 /**
  * Create and configure Fastify app
@@ -51,6 +52,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // Blog Post routes (user — auth inside route plugin)
     await fastify.register(blogPostRoutes, { prefix: '/api/blogposts' });
+
+    // SuperAdmin routes (superadmin role guard inside)
+    await fastify.register(superAdminRoutes, { prefix: '/api/superadmin' });
 
     return fastify;
 }
