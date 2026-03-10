@@ -32,6 +32,13 @@ export default function AdminLogin() {
                 toast.error("Access denied. This portal is for admins only.");
                 return;
             }
+            // If temp password: redirect WITHOUT dispatching credentials
+            // (so the isAuthenticated guard never fires and redirects to /admin)
+            if (response.user.isTemporaryPassword) {
+                toast.info("Please change your temporary password to continue.", { duration: 5000 });
+                navigate("/forgot-password", { state: { email: response.user.email, prefilled: true } });
+                return;
+            }
             dispatch(setCredentials({ user: response.user, accessToken: response.accessToken }));
             const welcomeMsg = response.user.role === "superadmin" ? "Welcome, Super Admin!" : "Welcome, Admin!";
             toast.success(welcomeMsg);

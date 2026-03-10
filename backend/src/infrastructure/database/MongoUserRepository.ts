@@ -89,6 +89,7 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
             tier: userDoc.tier,
             stage: userDoc.stage,
             status: userDoc.status,
+            isTemporaryPassword: userDoc.isTemporaryPassword ?? false,
             createdAt: userDoc.createdAt
         });
     }

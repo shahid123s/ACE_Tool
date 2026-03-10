@@ -76,6 +76,7 @@ export class ConfirmAdminCreation
             email: pending.email,
             password: hashedPassword,
             role: 'admin',
+            isTemporaryPassword: true,
         });
 
         const savedUser = await this.userRepository.save(adminUser);

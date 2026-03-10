@@ -1,21 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSendOtpMutation, useResetPasswordMutation } from '@/app/apiService';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Loader2, ArrowLeft, Mail, Lock, ShieldCheck, Eye } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail, Lock, ShieldCheck, Eye, AlertTriangle } from 'lucide-react';
 
 export default function ForgotPassword() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const routerState = location.state as { email?: string; prefilled?: boolean } | null;
+    const isForcedReset = !!routerState?.prefilled;
+
     const [step, setStep] = useState<1 | 2>(1);
-    const [email, setEmail] = useState('');
+    const [email, setEmail] = useState(routerState?.email || '');
     const [otp, setOtp] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
     const [resetPassword, { isLoading: isResetting }] = useResetPasswordMutation();
+
+    // Auto-send OTP when coming from a forced password reset redirect
+    useEffect(() => {
+        if (isForcedReset && routerState?.email) {
+            sendOtp({ email: routerState.email })
+                .unwrap()
+                .then(() => {
+                    toast.info('OTP sent to your email — please check your inbox.');
+                    setStep(2);
+                })
+                .catch(() => {
+                    toast.error('Failed to send OTP automatically. Please try manually.');
+                });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,8 +58,8 @@ export default function ForgotPassword() {
 
         try {
             await resetPassword({ email, otp, newPassword }).unwrap();
-            toast.success('Password reset successfully');
-            navigate('/login');
+            toast.success('Password changed successfully! Please log in with your new password.');
+            navigate(isForcedReset ? '/admin/login' : '/login');
         } catch (error: any) {
             toast.error(error.message || 'Failed to reset password');
         }
@@ -48,6 +68,16 @@ export default function ForgotPassword() {
     return (
         <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-[#F6F5F2]">
             <div className="w-full max-w-[460px] space-y-8">
+
+                {/* Banner for forced password change */}
+                {isForcedReset && (
+                    <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
+                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                        <p className="text-[13px] text-amber-700 font-medium">
+                            You're using a <strong>temporary password</strong>. Set a new password to access your account.
+                        </p>
+                    </div>
+                )}
 
                 {/* Header Top Icon */}
                 <div className="flex flex-col items-center mb-6">
