@@ -18,7 +18,10 @@ import {
     LogOut,
     ShieldCheck,
     Crown,
+    Sun,
+    Moon,
 } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const adminNav = [
     { label: "Overview", to: "/admin", icon: LayoutDashboard },
@@ -42,6 +45,8 @@ export function AdminSidebar() {
         dispatch(logout());
         navigate("/login");
     };
+
+    const { isDark, toggle } = useTheme();
 
     return (
         <aside
@@ -115,8 +120,19 @@ export function AdminSidebar() {
                 )}
             </nav>
 
-            {/* Logout */}
+            {/* Theme toggle + Logout */}
             <div className="border-t border-border/50">
+                <button
+                    onClick={toggle}
+                    className={cn(
+                        "flex items-center gap-3 w-full px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors",
+                        collapsed && "justify-center px-0"
+                    )}
+                    title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                    {isDark ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+                    {!collapsed && <span>{isDark ? "Light Mode" : "Dark Mode"}</span>}
+                </button>
                 <button
                     onClick={handleLogout}
                     className={cn(

@@ -49,7 +49,7 @@ export default function AdminLogin() {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#FAFBF9]">
+        <div className="min-h-screen w-full flex bg-background">
             {/* Left Column: Login Form */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 relative">
                 {/* Dark mode toggle */}
@@ -72,29 +72,29 @@ export default function AdminLogin() {
                     </div>
 
                     {/* Login Card */}
-                    <div className="bg-white rounded-[24px] p-8 sm:p-10 shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-[#f0f0f0]">
+                    <div className="bg-card rounded-[24px] p-8 sm:p-10 shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-border">
                         {/* Admin badge */}
-                        <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-[#EEF5E5] w-fit">
-                            <ShieldCheck className="h-3.5 w-3.5 text-[#6F8E3C]" />
-                            <span className="text-[11px] font-bold text-[#6F8E3C] uppercase tracking-[0.05em]">Admin Portal</span>
+                        <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-primary/10 w-fit">
+                            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                            <span className="text-[11px] font-bold text-primary uppercase tracking-[0.05em]">Admin Portal</span>
                         </div>
 
-                        <h2 className="text-2xl font-bold text-gray-900 mb-1.5">Admin Sign-In</h2>
-                        <p className="text-[13.5px] text-gray-500 mb-8 font-medium">Enter your administrator credentials</p>
+                        <h2 className="text-2xl font-bold text-foreground mb-1.5">Admin Sign-In</h2>
+                        <p className="text-[13.5px] text-muted-foreground mb-8 font-medium">Enter your administrator credentials</p>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[13px] font-semibold text-gray-700">Admin Email</label>
+                                <label className="text-[13px] font-semibold text-foreground">Admin Email</label>
                                 <Input type="email" placeholder="admin@ace.com" value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-white border-gray-200 h-12 rounded-xl text-sm focus-visible:ring-[#6F8E3C]" required />
+                                    className="bg-background border-border h-12 rounded-xl text-sm focus-visible:ring-primary" required />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[13px] font-semibold text-gray-700">Password</label>
+                                <label className="text-[13px] font-semibold text-foreground">Password</label>
                                 <div className="relative">
                                     <Input type="password" placeholder="••••••••" value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="bg-white border-gray-200 h-12 rounded-xl text-sm pr-10 focus-visible:ring-[#6F8E3C]" required />
+                                        className="bg-background border-border h-12 rounded-xl text-sm pr-10 focus-visible:ring-primary" required />
                                     {/* Eye Icon */}
                                     <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                         <Eye className="h-4 w-4" />
@@ -118,9 +118,9 @@ export default function AdminLogin() {
                         </form>
                     </div>
 
-                    <p className="text-center text-[13px] font-medium text-gray-500 pt-2">
+                    <p className="text-center text-[13px] font-medium text-muted-foreground pt-2">
                         Not an admin?{" "}
-                        <button onClick={() => navigate("/login")} className="text-[#6F8E3C] hover:text-[#56722d] transition-colors font-bold">
+                        <button onClick={() => navigate("/login")} className="text-primary hover:text-primary/80 transition-colors font-bold">
                             Go to Student Login <ArrowRight className="h-3 w-3 inline" />
                         </button>
                     </p>

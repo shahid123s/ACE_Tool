@@ -38,7 +38,7 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#F6F5F2]">
+        <div className="min-h-screen w-full flex bg-background">
             {/* Left Column: Graphic/Features */}
             <div className="hidden lg:flex w-1/2 bg-[#8B9C5F] flex-col p-12 xl:p-20 justify-between items-center relative overflow-hidden text-left shadow-2xl z-10">
                 <div className="w-full max-w-[500px] flex flex-col h-full">
@@ -117,41 +117,41 @@ export default function Login() {
 
                     {/* Header Top Icon */}
                     <div className="flex flex-col items-center mb-2">
-                        <div className="h-14 w-14 rounded-2xl bg-[#EBEBE5] flex items-center justify-center mb-4">
-                            <GraduationCap className="h-7 w-7 text-[#6F7F41]" />
+                        <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                            <GraduationCap className="h-7 w-7 text-primary" />
                         </div>
-                        <h2 className="text-2xl font-bold text-[#2A2B27] tracking-tight">ACE Student Portal</h2>
-                        <p className="text-[14px] text-[#71736B] mt-1 font-medium">Access your learning dashboard</p>
+                        <h2 className="text-2xl font-bold text-foreground tracking-tight">ACE Student Portal</h2>
+                        <p className="text-[14px] text-muted-foreground mt-1 font-medium">Access your learning dashboard</p>
                     </div>
 
                     {/* Login Card */}
-                    <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 w-full text-left">
+                    <div className="bg-card rounded-3xl p-8 sm:p-10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-border w-full text-left">
                         {/* Student Badge */}
-                        <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-[#F4F6F0] w-fit border border-[#E9ECE2]">
-                            <GraduationCap className="h-3.5 w-3.5 text-[#738244]" />
-                            <span className="text-[10px] font-bold text-[#738244] uppercase tracking-[0.08em]">Student Login</span>
+                        <div className="flex items-center gap-1.5 mb-6 px-3 py-1.5 rounded-full bg-primary/10 w-fit border border-primary/20">
+                            <GraduationCap className="h-3.5 w-3.5 text-primary" />
+                            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.08em]">Student Login</span>
                         </div>
 
-                        <h3 className="text-xl font-bold text-[#1A1A1A] mb-1">Welcome Back 👋</h3>
-                        <p className="text-[13px] text-[#7A7A7A] mb-8 font-medium">Sign in with your student credentials</p>
+                        <h3 className="text-xl font-bold text-foreground mb-1">Welcome Back 👋</h3>
+                        <p className="text-[13px] text-muted-foreground mb-8 font-medium">Sign in with your student credentials</p>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[12px] font-bold text-[#4A4A4A]">Student Email</label>
+                                <label className="text-[12px] font-bold text-foreground">Student Email</label>
                                 <Input type="email" placeholder="student@ace.com" value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-[#FAF9F5] border-0 focus-visible:ring-1 focus-visible:ring-[#738244] focus-visible:bg-white h-12 rounded-xl text-[13px] transition-all px-4" required />
+                                    className="bg-muted border-0 focus-visible:ring-1 focus-visible:ring-primary h-12 rounded-xl text-[13px] transition-all px-4" required />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-[12px] font-bold text-[#4A4A4A]">Password</label>
-                                    <button type="button" className="text-[11px] font-bold text-[#899A5B] hover:text-[#657342]" onClick={() => navigate('/forgot-password')}>
+                                    <label className="text-[12px] font-bold text-foreground">Password</label>
+                                    <button type="button" className="text-[11px] font-bold text-primary hover:text-primary/80" onClick={() => navigate('/forgot-password')}>
                                         Forgot password?
                                     </button>
                                 </div>
                                 <Input type="password" placeholder="••••••••" value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-[#FAF9F5] border-0 focus-visible:ring-1 focus-visible:ring-[#738244] focus-visible:bg-white h-12 rounded-xl text-[13px] transition-all px-4" required />
+                                    className="bg-muted border-0 focus-visible:ring-1 focus-visible:ring-primary h-12 rounded-xl text-[13px] transition-all px-4" required />
                             </div>
 
                             <Button type="submit"
@@ -162,9 +162,9 @@ export default function Login() {
                         </form>
                     </div>
 
-                    <p className="text-center text-[13px] font-medium text-[#8A8C85] pt-4">
+                    <p className="text-center text-[13px] font-medium text-muted-foreground pt-4">
                         Are you an admin?{" "}
-                        <button onClick={() => navigate("/admin/login")} className="text-[#768545] hover:text-[#5E6B35] transition-colors font-bold">
+                        <button onClick={() => navigate("/admin/login")} className="text-primary hover:text-primary/80 transition-colors font-bold">
                             Go to Admin Login →
                         </button>
                     </p>
