@@ -20,7 +20,7 @@ export interface User {
     id: string;
     name: string;
     email: string;
-    role: 'admin' | 'user';
+    role: 'admin' | 'user' | 'superadmin';
     aceId?: string;
     phone?: string;
     batch?: string;
@@ -28,6 +28,7 @@ export interface User {
     tier?: string;
     stage?: 'Placement' | 'Boarding week' | 'TOI' | 'Project' | '2 FD' | '1 FD' | 'Placed';
     status: 'ongoing' | 'removed' | 'break' | 'hold' | 'placed';
+    isTemporaryPassword?: boolean;
 }
 
 export interface AuthResponseData {

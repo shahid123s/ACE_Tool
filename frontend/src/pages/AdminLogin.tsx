@@ -28,12 +28,20 @@ export default function AdminLogin() {
         if (!email || !password) return;
         try {
             const response = await login({ email, password }).unwrap();
-            if (response.user.role !== "admin") {
+            if (response.user.role !== "admin" && response.user.role !== "superadmin") {
                 toast.error("Access denied. This portal is for admins only.");
                 return;
             }
+            // If temp password: redirect WITHOUT dispatching credentials
+            // (so the isAuthenticated guard never fires and redirects to /admin)
+            if (response.user.isTemporaryPassword) {
+                toast.info("Please change your temporary password to continue.", { duration: 5000 });
+                navigate("/forgot-password", { state: { email: response.user.email, prefilled: true } });
+                return;
+            }
             dispatch(setCredentials({ user: response.user, accessToken: response.accessToken }));
-            toast.success("Welcome, Admin!");
+            const welcomeMsg = response.user.role === "superadmin" ? "Welcome, Super Admin!" : "Welcome, Admin!";
+            toast.success(welcomeMsg);
             navigate("/admin");
         } catch (error: any) {
             toast.error(error.data?.message || "Login failed");

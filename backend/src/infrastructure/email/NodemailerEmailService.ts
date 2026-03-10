@@ -77,6 +77,35 @@ export class NodemailerEmailService implements IEmailService {
             throw error; // Throw for OTP, user needs to know it failed
         }
     }
+    async sendAdminCreationOtpEmail(to: string, adminName: string, otp: string): Promise<void> {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@ace-platform.com',
+            to,
+            subject: '🔐 Admin Creation OTP - ACE Platform',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #e74c3c; border-radius: 12px;">
+                    <h2 style="color: #c0392b;">Admin Account Creation Request</h2>
+                    <p>A new admin account is being created with the following details:</p>
+                    <div style="background: #fdf2f2; padding: 12px; border-radius: 8px; margin: 12px 0;">
+                        <p style="margin: 4px 0;"><strong>Name:</strong> ${adminName}</p>
+                    </div>
+                    <p>Use the OTP below to confirm this action:</p>
+                    <div style="background: #c0392b; padding: 20px; border-radius: 8px; margin: 16px 0; text-align: center;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #fff;">${otp}</span>
+                    </div>
+                    <p style="color: #666;">This OTP is valid for <strong>15 minutes</strong>. Do not share it with anyone.</p>
+                    <p style="color: #e74c3c; font-size: 13px;">If you did not initiate this request, please secure your account immediately.</p>
+                </div>
+            `,
+        };
+
+        try {
+            await this.transporter.sendMail(mailOptions);
+        } catch (error) {
+            console.error('Failed to send admin creation OTP email:', error);
+            throw error;
+        }
+    }
 }
 
 export const emailService = new NodemailerEmailService();

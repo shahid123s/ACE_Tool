@@ -10,7 +10,7 @@ const UserSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: false },
-    role: { type: String, required: true, enum: ['user', 'admin'], default: 'user' },
+    role: { type: String, required: true, enum: ['user', 'admin', 'superadmin'], default: 'user' },
     aceId: { type: String, unique: true, sparse: true },
     phone: { type: String },
     batch: { type: String },
@@ -18,6 +18,7 @@ const UserSchema: Schema = new Schema({
     tier: { type: String, enum: ['Tier-1', 'Tier-2', 'Tier-3'] },
     stage: { type: String, enum: ['Placement', 'Boarding week', 'TOI', 'Project', '2 FD', '1 FD', 'Placed'], default: 'Boarding week' },
     status: { type: String, enum: ['ongoing', 'removed', 'break', 'hold', 'placed'], default: 'ongoing' },
+    isTemporaryPassword: { type: Boolean, default: false },
 }, {
     timestamps: true
 });

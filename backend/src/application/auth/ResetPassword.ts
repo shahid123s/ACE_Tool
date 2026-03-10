@@ -51,8 +51,9 @@ export class ResetPassword implements IUseCase<ResetPasswordRequest, ResetPasswo
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(data.newPassword, salt);
 
-        // Update User Password
+        // Update User Password and clear temporary flag
         (user as any).password = hashedPassword;
+        (user as any).isTemporaryPassword = false;
 
         // Clear OTP from Redis
         await this.otpRepository.delete(data.email);

@@ -17,6 +17,7 @@ import {
     ChevronRight,
     LogOut,
     ShieldCheck,
+    Crown,
 } from "lucide-react";
 
 const adminNav = [
@@ -87,6 +88,31 @@ export function AdminSidebar() {
                         {!collapsed && <span>{item.label}</span>}
                     </NavLink>
                 ))}
+
+                {/* SuperAdmin-only section */}
+                {user?.role === 'superadmin' && (
+                    <>
+                        {!collapsed && (
+                            <p className="text-[10px] uppercase tracking-widest text-amber-500/80 font-semibold mt-4 mb-2 px-5">
+                                Super Admin
+                            </p>
+                        )}
+                        <NavLink
+                            to="/admin/admins"
+                            className={({ isActive }) =>
+                                cn(
+                                    "flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                    isActive
+                                        ? "bg-amber-500/10 text-amber-600"
+                                        : "text-muted-foreground hover:bg-amber-50 hover:text-amber-600"
+                                )
+                            }
+                        >
+                            <Crown className="h-4 w-4 shrink-0" />
+                            {!collapsed && <span>Admin Accounts</span>}
+                        </NavLink>
+                    </>
+                )}
             </nav>
 
             {/* Logout */}

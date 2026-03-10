@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import config from './config/env.js';
 import { connectDB } from './infrastructure/database/connection.js';
+import { seedSuperAdmin } from './infrastructure/database/seeds/seedSuperAdmin.js';
 
 /**
  * Start the server
@@ -8,6 +9,7 @@ import { connectDB } from './infrastructure/database/connection.js';
 async function start(): Promise<void> {
     try {
         await connectDB();
+        await seedSuperAdmin();
         const app = await buildApp();
         const port = Number(config.port);
 

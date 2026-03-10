@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { CreateStudent, CreateStudentRequest, CreateStudentResponse } from '../../../application/admin/CreateStudent.js';
+import { CreateStudentsBulk, CreateStudentsBulkRequest, CreateStudentsBulkResponse } from '../../../application/admin/CreateStudentsBulk.js';
 import { IUserRepository } from '../../../domain/user/UserRepository.js';
 import { IEmailService } from '../../../application/interfaces/IEmailService.js';
 import { IUseCase } from '../../../application/interfaces.js';
@@ -11,6 +12,7 @@ import { IUseCase } from '../../../application/interfaces.js';
 export class AdminController {
     constructor(
         private readonly createStudentUseCase: IUseCase<CreateStudentRequest, CreateStudentResponse>,
+        private readonly createStudentsBulkUseCase: IUseCase<CreateStudentsBulkRequest, CreateStudentsBulkResponse>,
         private readonly userRepository: IUserRepository
     ) { }
 
@@ -23,6 +25,28 @@ export class AdminController {
             const result = await this.createStudentUseCase.execute(request.body);
 
             return reply.status(201).send({
+                success: true,
+                data: result,
+            });
+        } catch (error: any) {
+            request.log.error(error);
+            const statusCode = error.statusCode || 400;
+            return reply.status(statusCode).send({
+                success: false,
+                message: error.message,
+            });
+        }
+    }
+
+    /**
+     * Create students in bulk
+     * POST /api/admin/students/bulk
+     */
+    async createStudentsBulk(request: FastifyRequest<{ Body: CreateStudentsBulkRequest }>, reply: FastifyReply): Promise<FastifyReply> {
+        try {
+            const result = await this.createStudentsBulkUseCase.execute(request.body);
+
+            return reply.status(207).send({
                 success: true,
                 data: result,
             });
