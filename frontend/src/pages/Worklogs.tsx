@@ -139,7 +139,7 @@ function WorklogDialog({ open, onClose, existing, takenDates }: WorklogDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto pr-2">
           {/* Date — create only */}
           {!isEdit && (
             <div className="space-y-1">

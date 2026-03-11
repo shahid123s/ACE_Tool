@@ -32,7 +32,7 @@ export default function Login() {
             dispatch(setCredentials({ user: response.user, accessToken: response.accessToken }));
             toast.success("Welcome back!");
             // Route based on role returned in the response
-            navigate(response.user.role === "admin" ? "/admin" : "/");
+            navigate((response.user.role === "admin" || response.user.role === "superadmin") ? "/admin" : "/");
         } catch (error: any) {
             toast.error(error.data?.message || "Login failed");
         }
