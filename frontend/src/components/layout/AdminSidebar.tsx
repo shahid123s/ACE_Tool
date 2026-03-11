@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { logout, selectCurrentUser } from "@/app/authSlice";
+import { apiService } from "@/app/apiService";
 import {
     LayoutDashboard,
     Users,
@@ -43,6 +44,7 @@ export function AdminSidebar() {
 
     const handleLogout = () => {
         dispatch(logout());
+        dispatch(apiService.util.resetApiState());
         navigate("/login");
     };
 

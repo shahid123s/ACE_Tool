@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAppDispatch } from "@/app/hooks";
 import { logout } from "@/app/authSlice";
+import { apiService } from "@/app/apiService";
 import {
     LayoutDashboard,
     Clock,
@@ -40,6 +41,7 @@ export function AppSidebar() {
 
     const handleLogout = () => {
         dispatch(logout());
+        dispatch(apiService.util.resetApiState());
         navigate("/login");
     };
 
