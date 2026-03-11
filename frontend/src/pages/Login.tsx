@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { setCredentials, selectIsAuthenticated, selectIsAdmin } from "@/app/authSlice";
 import { Loader2, GraduationCap, BookOpen, Trophy, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { PageMeta } from "@/components/shared/PageMeta";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -39,6 +40,7 @@ export default function Login() {
 
     return (
         <div className="min-h-screen w-full flex bg-background">
+            <PageMeta title="Student Login" />
             {/* Left Column: Graphic/Features */}
             <div className="hidden lg:flex w-1/2 bg-[#8B9C5F] flex-col p-12 xl:p-20 justify-between items-center relative overflow-hidden text-left shadow-2xl z-10">
                 <div className="w-full max-w-[500px] flex flex-col h-full">

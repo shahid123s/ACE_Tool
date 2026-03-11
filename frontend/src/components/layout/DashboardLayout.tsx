@@ -1,6 +1,7 @@
 import { AppSidebar } from "./AppSidebar";
 import { TopNav } from "./TopNav";
 import { BackgroundBlobs } from "@/components/shared/BackgroundBlobs";
+import { PageMeta } from "@/components/shared/PageMeta";
 import { ReactNode } from "react";
 
 interface DashboardLayoutProps {
@@ -10,6 +11,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <div className="flex min-h-screen w-full relative">
+            <PageMeta title="Student Dashboard" />
             <BackgroundBlobs />
             <AppSidebar />
             <div className="flex-1 flex flex-col min-w-0">

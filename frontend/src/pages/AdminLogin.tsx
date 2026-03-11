@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { setCredentials, selectIsAuthenticated, selectIsAdmin } from "@/app/authSlice";
 import { Loader2, ShieldCheck, Moon, GraduationCap, ArrowRight, Sparkles, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { PageMeta } from "@/components/shared/PageMeta";
 
 export default function AdminLogin() {
     const [email, setEmail] = useState("");
@@ -50,6 +51,7 @@ export default function AdminLogin() {
 
     return (
         <div className="min-h-screen w-full flex bg-background">
+            <PageMeta title="Admin Login" />
             {/* Left Column: Login Form */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 relative">
                 {/* Dark mode toggle */}

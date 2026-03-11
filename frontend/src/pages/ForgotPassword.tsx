@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Loader2, ArrowLeft, Mail, Lock, ShieldCheck, Eye, AlertTriangle } from 'lucide-react';
+import { PageMeta } from "@/components/shared/PageMeta";
 
 export default function ForgotPassword() {
     const navigate = useNavigate();
@@ -67,6 +68,7 @@ export default function ForgotPassword() {
 
     return (
         <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-[#F6F5F2]">
+            <PageMeta title="Reset Password" />
             <div className="w-full max-w-[460px] space-y-8">
 
                 {/* Banner for forced password change */}
