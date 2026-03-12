@@ -1,4 +1,4 @@
-import { IWorklogRepository, WorklogFilters } from '../../domain/worklog/IWorklogRepository.js';
+import { IWorklogRepository, WorklogFilters, PaginatedWorklogs } from '../../domain/worklog/IWorklogRepository.js';
 import { Worklog } from '../../domain/worklog/Worklog.js';
 import { WorklogModel, WorklogDocument } from './schemas/WorklogSchema.js';
 
@@ -33,11 +33,23 @@ export class MongoWorklogRepository implements IWorklogRepository {
         return this.mapToDomain(doc);
     }
 
-    async findByUserId(userId: string): Promise<Worklog[]> {
-        const docs = await WorklogModel.find({ userId })
-            .sort({ date: -1 })
-            .lean<WorklogDocument[]>();
-        return docs.map(d => this.mapToDomain(d));
+    async findByUserId(userId: string, page: number = 1, limit: number = 10): Promise<PaginatedWorklogs> {
+        const query = { userId };
+        const skip = (page - 1) * limit;
+
+        const [docs, total] = await Promise.all([
+            WorklogModel.find(query)
+                .sort({ date: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean<WorklogDocument[]>(),
+            WorklogModel.countDocuments(query)
+        ]);
+
+        return {
+            worklogs: docs.map(d => this.mapToDomain(d)),
+            total
+        };
     }
 
     async findByUserIdAndDate(userId: string, date: Date): Promise<Worklog | null> {
@@ -56,7 +68,7 @@ export class MongoWorklogRepository implements IWorklogRepository {
         return this.mapToDomain(doc);
     }
 
-    async findAll(filters: WorklogFilters = {}): Promise<Worklog[]> {
+    async findAll(filters: WorklogFilters = {}): Promise<PaginatedWorklogs> {
         const query: Record<string, any> = {};
 
         if (filters.userId) query.userId = filters.userId;
@@ -78,11 +90,23 @@ export class MongoWorklogRepository implements IWorklogRepository {
             if (filters.to) query.date.$lt = filters.to;
         }
 
-        const docs = await WorklogModel.find(query)
-            .sort({ date: -1 })
-            .lean<WorklogDocument[]>();
+        const page = filters.page || 1;
+        const limit = filters.limit || 10;
+        const skip = (page - 1) * limit;
 
-        return docs.map(d => this.mapToDomain(d));
+        const [docs, total] = await Promise.all([
+            WorklogModel.find(query)
+                .sort({ date: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean<WorklogDocument[]>(),
+            WorklogModel.countDocuments(query)
+        ]);
+
+        return {
+            worklogs: docs.map(d => this.mapToDomain(d)),
+            total
+        };
     }
 
     async delete(id: string): Promise<boolean> {

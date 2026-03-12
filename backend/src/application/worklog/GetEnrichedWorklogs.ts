@@ -10,6 +10,8 @@ export interface GetEnrichedWorklogsRequest {
     from?: string;   // ISO date range start
     to?: string;     // ISO date range end
     status?: 'draft' | 'submitted';
+    page?: number;
+    limit?: number;
 }
 
 export interface EnrichedWorklogDTO extends WorklogDTO {
@@ -18,6 +20,14 @@ export interface EnrichedWorklogDTO extends WorklogDTO {
     batch?: string;
 }
 
+
+export interface PaginatedEnrichedWorklogDTO {
+    worklogs: EnrichedWorklogDTO[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
 
 /**
  * GetEnrichedWorklogs — Application Use Case
@@ -28,13 +38,15 @@ export interface EnrichedWorklogDTO extends WorklogDTO {
  * Keeps infrastructure concerns (Mongoose populate) out of the controller
  * by leveraging the domain repository interfaces.
  */
-export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest, EnrichedWorklogDTO[]> {
+export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest, PaginatedEnrichedWorklogDTO> {
     constructor(
         private readonly worklogRepository: IWorklogRepository,
         private readonly userRepository: IUserRepository,
     ) { }
 
-    async execute(filters: GetEnrichedWorklogsRequest): Promise<EnrichedWorklogDTO[]> {
+    async execute(filters: GetEnrichedWorklogsRequest): Promise<PaginatedEnrichedWorklogDTO> {
+        const page = filters.page ? Number(filters.page) : 1;
+        const limit = filters.limit ? Number(filters.limit) : 10;
         // 1. Convert string dates → Date for the repository layer
         const repoFilters: WorklogFilters = {
             userId: filters.userId,
@@ -42,14 +54,24 @@ export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest,
             date: filters.date ? new Date(filters.date) : undefined,
             from: filters.from ? new Date(filters.from) : undefined,
             to: filters.to ? new Date(filters.to) : undefined,
+            page,
+            limit,
         };
 
         // 2. Fetch filtered worklogs
-        const worklogs = await this.worklogRepository.findAll(repoFilters);
-        if (worklogs.length === 0) return [];
+        const result = await this.worklogRepository.findAll(repoFilters);
+        if (result.worklogs.length === 0) {
+            return {
+                worklogs: [],
+                total: 0,
+                page,
+                limit,
+                totalPages: 0
+            };
+        }
 
         // 3. Collect unique userIds, then fetch matching users in one query
-        const uniqueUserIds = [...new Set(worklogs.map((w) => w.userId))];
+        const uniqueUserIds = [...new Set(result.worklogs.map((w) => w.userId))];
         const allUsers = await this.userRepository.findAll();
         const userMap = new Map(
             allUsers
@@ -58,7 +80,7 @@ export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest,
         );
 
         // 4. Merge worklog DTOs with user info
-        return worklogs.map((w) => {
+        const enrichedWorklogs = result.worklogs.map((w) => {
             const dto = w.toObject();
             const user = userMap.get(w.userId);
             return {
@@ -68,5 +90,13 @@ export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest,
                 batch: user?.batch || "",
             };
         });
+
+        return {
+            worklogs: enrichedWorklogs,
+            total: result.total,
+            page,
+            limit,
+            totalPages: Math.ceil(result.total / limit)
+        };
     }
 }

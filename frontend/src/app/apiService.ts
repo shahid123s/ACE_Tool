@@ -157,9 +157,9 @@ export const apiService = createApi({
             transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
             providesTags: ['User'],
         }),
-        getAdminWorklogs: builder.query<Worklog[], { userId?: string; status?: string; from?: string; to?: string } | void>({
+        getAdminWorklogs: builder.query<{ worklogs: any[], total: number, page: number, limit: number, totalPages: number }, { userId?: string; status?: string; from?: string; to?: string; page?: number; limit?: number } | void>({
             query: (params) => ({ url: '/admin/worklogs', params: params ?? {} }),
-            transformResponse: (response: ApiResponse<Worklog[]>) => response.data,
+            transformResponse: (response: ApiResponse<{ worklogs: any[], total: number, page: number, limit: number, totalPages: number }>) => response.data,
             providesTags: ['Worklog'],
         }),
         getAdminReports: builder.query<EnrichedReport[], { type?: 'weekly' | 'monthly'; userId?: string } | void>({
@@ -213,9 +213,9 @@ export const apiService = createApi({
             transformResponse: (response: ApiResponse<{ message: string }>) => response.data,
         }),
         // ─── Worklog Endpoints ───────────────────────────────────────
-        getMyWorklogs: builder.query<Worklog[], void>({
-            query: () => '/worklogs',
-            transformResponse: (response: ApiResponse<Worklog[]>) => response.data,
+        getMyWorklogs: builder.query<{ worklogs: Worklog[], total: number, page: number, limit: number, totalPages: number }, { page?: number; limit?: number } | void>({
+            query: (params) => ({ url: '/worklogs', params: params ?? {} }),
+            transformResponse: (response: ApiResponse<{ worklogs: Worklog[], total: number, page: number, limit: number, totalPages: number }>) => response.data,
             providesTags: ['Worklog'],
         }),
         getTodayWorklog: builder.query<Worklog | null, void>({

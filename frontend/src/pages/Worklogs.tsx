@@ -360,8 +360,12 @@ function QuickAddTaskDialog({ open, onClose, worklog }: QuickAddTaskProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const Worklogs = () => {
-  const { data: worklogs, isLoading, isError } = useGetMyWorklogsQuery();
+  const [page, setPage] = useState(1);
+  const { data: worklogsData, isLoading, isError } = useGetMyWorklogsQuery({ page, limit: 10 });
   const [submitWorklog, { isLoading: submitting }] = useSubmitWorklogMutation();
+
+  const worklogs = worklogsData?.worklogs ?? [];
+  const totalPages = worklogsData?.totalPages ?? 1;
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Worklog | null>(null);
@@ -552,6 +556,23 @@ const Worklogs = () => {
                 );
               })}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

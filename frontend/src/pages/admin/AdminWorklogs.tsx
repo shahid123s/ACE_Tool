@@ -11,12 +11,21 @@ import { Clock, FileText } from "lucide-react";
 import { useGetAdminWorklogsQuery } from "@/app/apiService";
 
 export default function AdminWorklogs() {
+    const [page, setPage] = useState(1);
     const [wlFilters, setWlFilters] = useState<{ status?: string; from?: string; to?: string }>({});
-    const { data: worklogsData, isLoading: wlLoading } = useGetAdminWorklogsQuery(
-        Object.values(wlFilters).some(Boolean) ? wlFilters : undefined
-    );
-    const worklogs = worklogsData ?? [];
+    const { data: worklogsData, isLoading: wlLoading } = useGetAdminWorklogsQuery({
+        ...(Object.values(wlFilters).some(Boolean) ? wlFilters : {}),
+        page,
+        limit: 10
+    });
+    const worklogs = worklogsData?.worklogs ?? [];
+    const totalPages = worklogsData?.totalPages ?? 1;
     const [selectedWorklog, setSelectedWorklog] = useState<any | null>(null);
+
+    const handleFilterChange = (key: string, value: string | undefined) => {
+        setWlFilters((f) => ({ ...f, [key]: value }));
+        setPage(1); // Reset to first page when filtering
+    };
 
     return (
         <AdminLayout>
@@ -30,7 +39,7 @@ export default function AdminWorklogs() {
                 <div className="flex flex-wrap items-end gap-3">
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-muted-foreground uppercase tracking-wide">Status</label>
-                        <Select value={wlFilters.status ?? "all"} onValueChange={(v) => setWlFilters((f) => ({ ...f, status: v === "all" ? undefined : v }))}>
+                        <Select value={wlFilters.status ?? "all"} onValueChange={(v) => handleFilterChange("status", v === "all" ? undefined : v)}>
                             <SelectTrigger className="h-9 w-36 glass-input"><SelectValue placeholder="All" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All</SelectItem>
@@ -41,14 +50,14 @@ export default function AdminWorklogs() {
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-muted-foreground uppercase tracking-wide">From</label>
-                        <Input type="date" className="h-9 glass-input w-40" value={wlFilters.from ?? ""} onChange={(e) => setWlFilters((f) => ({ ...f, from: e.target.value || undefined }))} />
+                        <Input type="date" className="h-9 glass-input w-40" value={wlFilters.from ?? ""} onChange={(e) => handleFilterChange("from", e.target.value || undefined)} />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-xs text-muted-foreground uppercase tracking-wide">To</label>
-                        <Input type="date" className="h-9 glass-input w-40" value={wlFilters.to ?? ""} onChange={(e) => setWlFilters((f) => ({ ...f, to: e.target.value || undefined }))} />
+                        <Input type="date" className="h-9 glass-input w-40" value={wlFilters.to ?? ""} onChange={(e) => handleFilterChange("to", e.target.value || undefined)} />
                     </div>
                     {Object.values(wlFilters).some(Boolean) && (
-                        <Button variant="ghost" size="sm" onClick={() => setWlFilters({})} className="h-9 text-muted-foreground">Clear</Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setWlFilters({}); setPage(1); }} className="h-9 text-muted-foreground">Clear</Button>
                     )}
                 </div>
             </GlassCard>
@@ -56,7 +65,7 @@ export default function AdminWorklogs() {
             <GlassCard>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-foreground">Worklogs Across All Users</h3>
-                    <span className="text-xs text-muted-foreground">{worklogs.length} entries</span>
+                    <span className="text-xs text-muted-foreground">{worklogsData?.total ?? 0} entries</span>
                 </div>
                 {wlLoading ? (
                     <div className="py-12 text-center text-muted-foreground text-sm">Loading worklogs…</div>
@@ -113,6 +122,19 @@ export default function AdminWorklogs() {
                             ))}
                         </TableBody>
                     </Table>
+                )}
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 border-t border-border/50 pt-4">
+                        <span className="text-sm text-muted-foreground">
+                            Page {page} of {totalPages}
+                        </span>
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Previous</Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>Next</Button>
+                        </div>
+                    </div>
                 )}
             </GlassCard>
 

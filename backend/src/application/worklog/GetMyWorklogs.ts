@@ -4,13 +4,33 @@ import { IUseCase } from '../interfaces.js';
 
 export interface GetMyWorklogsRequest {
     userId: string;
+    page?: number;
+    limit?: number;
 }
 
-export class GetMyWorklogs implements IUseCase<GetMyWorklogsRequest, WorklogDTO[]> {
+export interface PaginatedWorklogDTO {
+    worklogs: WorklogDTO[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export class GetMyWorklogs implements IUseCase<GetMyWorklogsRequest, PaginatedWorklogDTO> {
     constructor(private readonly worklogRepository: IWorklogRepository) { }
 
-    async execute(data: GetMyWorklogsRequest): Promise<WorklogDTO[]> {
-        const worklogs = await this.worklogRepository.findByUserId(data.userId);
-        return worklogs.map(w => w.toObject());
+    async execute(data: GetMyWorklogsRequest): Promise<PaginatedWorklogDTO> {
+        const page = data.page || 1;
+        const limit = data.limit || 10;
+
+        const result = await this.worklogRepository.findByUserId(data.userId, page, limit);
+
+        return {
+            worklogs: result.worklogs.map(w => w.toObject()),
+            total: result.total,
+            page,
+            limit,
+            totalPages: Math.ceil(result.total / limit)
+        };
     }
 }

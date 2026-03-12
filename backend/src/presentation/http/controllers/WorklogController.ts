@@ -103,10 +103,12 @@ export class WorklogController {
      * GET /api/worklogs
      * Get all worklogs for the authenticated user (history)
      */
-    async getMine(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+    async getMine(request: FastifyRequest<{ Querystring: { page?: string, limit?: string } }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
             const userId = request.user!.id;
-            const result = await this.getMyWorklogs.execute({ userId });
+            const page = request.query.page ? parseInt(request.query.page) : undefined;
+            const limit = request.query.limit ? parseInt(request.query.limit) : undefined;
+            const result = await this.getMyWorklogs.execute({ userId, page, limit });
             return reply.send({ success: true, data: result });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
@@ -121,12 +123,14 @@ export class WorklogController {
      * Delegates enrichment (name, aceId, batch) to GetEnrichedWorklogs use case.
      */
     async adminGetAll(
-        request: FastifyRequest<{ Querystring: GetAllWorklogsRequest & { userId?: string } }>,
+        request: FastifyRequest<{ Querystring: GetAllWorklogsRequest & { userId?: string, page?: string, limit?: string } }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
         if (!this.getEnrichedWorklogs) return reply.status(501).send({ success: false, message: 'Not configured' });
         try {
-            const data = await this.getEnrichedWorklogs.execute(request.query);
+            const page = request.query.page ? parseInt(request.query.page) : undefined;
+            const limit = request.query.limit ? parseInt(request.query.limit) : undefined;
+            const data = await this.getEnrichedWorklogs.execute({ ...request.query, page, limit });
             return reply.send({ success: true, data });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
@@ -138,12 +142,14 @@ export class WorklogController {
      * Admin: get all worklogs for a specific user.
      */
     async adminGetByUser(
-        request: FastifyRequest<{ Params: { userId: string } }>,
+        request: FastifyRequest<{ Params: { userId: string }, Querystring: { page?: string, limit?: string } }>,
         reply: FastifyReply
     ): Promise<FastifyReply> {
         if (!this.getEnrichedWorklogs) return reply.status(501).send({ success: false, message: 'Not configured' });
         try {
-            const data = await this.getEnrichedWorklogs.execute({ userId: request.params.userId });
+            const page = request.query.page ? parseInt(request.query.page) : undefined;
+            const limit = request.query.limit ? parseInt(request.query.limit) : undefined;
+            const data = await this.getEnrichedWorklogs.execute({ userId: request.params.userId, page, limit });
             return reply.send({ success: true, data });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });
