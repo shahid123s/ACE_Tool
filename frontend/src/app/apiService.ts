@@ -46,6 +46,27 @@ const baseQuery = fetchBaseQuery({
     },
 });
 
+/**
+ * Recursively trims all string values within an object or array.
+ * This ensures no trailing/leading spaces are sent to backend APIs.
+ */
+function trimStrings(obj: any): any {
+    if (typeof obj === 'string') {
+        return obj.trim();
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(trimStrings);
+    }
+    if (obj !== null && typeof obj === 'object') {
+        const trimmedObj: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+            trimmedObj[key] = trimStrings(value);
+        }
+        return trimmedObj;
+    }
+    return obj;
+}
+
 const baseQueryWithReauth: BaseQueryFn<
     string | FetchArgs,
     unknown,
@@ -53,6 +74,12 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
     // Wait until any in-progress refresh is done
     await mutex.waitForUnlock();
+
+    // Intercept and auto-trim all outgoing JSON body requests
+    if (typeof args !== 'string' && args.body) {
+        args.body = trimStrings(args.body);
+    }
+
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {

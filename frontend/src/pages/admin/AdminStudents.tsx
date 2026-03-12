@@ -26,6 +26,17 @@ export default function AdminStudents() {
     const [editingStudent, setEditingStudent] = useState<any>(null);
     const [newStudent, setNewStudent] = useState<CreateStudentRequest>({ aceId: "", name: "", email: "", phone: "", batch: "", domain: "", tier: "Tier-1" });
 
+    const [isCustomDomainCreate, setIsCustomDomainCreate] = useState(false);
+    const [customDomainCreateValue, setCustomDomainCreateValue] = useState("");
+    const [isCustomDomainEdit, setIsCustomDomainEdit] = useState(false);
+    const [customDomainEditValue, setCustomDomainEditValue] = useState("");
+
+    const baseDomainOptions = ["MERN", "MEAN", "Python+Django", "Flutter", "Cybersecurity", "DS", "ML"];
+    const baseDomainLabels: Record<string, string> = { "MERN": "MERN Stack", "MEAN": "MEAN Stack", "Python+Django": "Python + Django", "Flutter": "Flutter", "Cybersecurity": "Cybersecurity", "DS": "Data Science", "ML": "Machine Learning" };
+
+    const dynamicDomains = Array.from(new Set(students.map((s: any) => s.domain).filter(Boolean)));
+    const allDomainOptions = Array.from(new Set([...baseDomainOptions, ...dynamicDomains]));
+
     const filteredStudents = students.filter((s: any) => {
         const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesDomain = domainFilter === "all" || s.domain === domainFilter;
@@ -37,13 +48,21 @@ export default function AdminStudents() {
         setEditDialogOpen(true);
     };
 
+    const handleCloseEdit = () => {
+        setEditDialogOpen(false);
+        setEditingStudent(null);
+        setIsCustomDomainEdit(false);
+        setCustomDomainEditValue("");
+    };
+
     const handleUpdateStudent = async () => {
         if (!editingStudent) return;
         try {
+            const finalDomain = isCustomDomainEdit ? customDomainEditValue.trim() : editingStudent.domain;
             const { id, ...data } = editingStudent;
-            await updateStudent({ id, data }).unwrap();
+            await updateStudent({ id, data: { ...data, domain: finalDomain } }).unwrap();
             toast.success("Student updated successfully");
-            setEditDialogOpen(false);
+            handleCloseEdit();
         } catch (err: any) {
             toast.error("Failed to update student", { description: err.data?.message });
         }
@@ -56,19 +75,23 @@ export default function AdminStudents() {
         } catch { toast.error("Failed to update status"); }
     };
 
+    const handleCloseCreate = () => {
+        setCreateDialogOpen(false);
+        setNewStudent({ aceId: "", name: "", email: "", phone: "", batch: "", domain: "", tier: "Tier-1" });
+        setIsCustomDomainCreate(false);
+        setCustomDomainCreateValue("");
+    };
+
     const handleCreateStudent = async () => {
         try {
-            await createStudent(newStudent).unwrap();
+            const finalDomain = isCustomDomainCreate ? customDomainCreateValue.trim() : newStudent.domain;
+            await createStudent({ ...newStudent, domain: finalDomain }).unwrap();
             toast.success("Student created successfully", { description: "Credentials have been sent to their email." });
-            setCreateDialogOpen(false);
-            setNewStudent({ aceId: "", name: "", email: "", phone: "", batch: "", domain: "", tier: "Tier-1" });
+            handleCloseCreate();
         } catch (err: any) {
             toast.error("Failed to create student", { description: err.data?.message });
         }
     };
-
-    const domainOptions = ["MERN", "MEAN", "Python+Django", "Flutter", "Cybersecurity", "DS", "ML"];
-    const domainLabels: Record<string, string> = { "MERN": "MERN Stack", "MEAN": "MEAN Stack", "Python+Django": "Python + Django", "Flutter": "Flutter", "Cybersecurity": "Cybersecurity", "DS": "Data Science", "ML": "Machine Learning" };
 
     return (
         <AdminLayout>
@@ -87,7 +110,7 @@ export default function AdminStudents() {
                         <SelectTrigger className="w-full sm:w-44 glass-input"><SelectValue placeholder="Domain" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Domains</SelectItem>
-                            {domainOptions.map(d => <SelectItem key={d} value={d}>{domainLabels[d]}</SelectItem>)}
+                            {allDomainOptions.map(d => <SelectItem key={d as string} value={d as string}>{baseDomainLabels[d as string] || (d as string)}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <Button onClick={() => setCreateDialogOpen(true)}>
@@ -144,7 +167,7 @@ export default function AdminStudents() {
             </GlassCard>
 
             {/* Create Dialog */}
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <Dialog open={createDialogOpen} onOpenChange={(open) => { if (!open) handleCloseCreate(); }}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Add New Student</DialogTitle>
@@ -159,10 +182,28 @@ export default function AdminStudents() {
                         ))}
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Domain</label>
-                            <Select value={newStudent.domain} onValueChange={(val) => setNewStudent({ ...newStudent, domain: val })}>
-                                <SelectTrigger><SelectValue placeholder="Select Domain" /></SelectTrigger>
-                                <SelectContent>{domainOptions.map(d => <SelectItem key={d} value={d}>{domainLabels[d]}</SelectItem>)}</SelectContent>
-                            </Select>
+                            {isCustomDomainCreate ? (
+                                <div className="flex gap-2">
+                                    <Input
+                                        placeholder="Enter custom domain..."
+                                        value={customDomainCreateValue}
+                                        onChange={(e) => setCustomDomainCreateValue(e.target.value)}
+                                        className="glass-input flex-1"
+                                    />
+                                    <Button type="button" variant="outline" onClick={() => setIsCustomDomainCreate(false)} className="px-3 text-muted-foreground hover:text-foreground">X</Button>
+                                </div>
+                            ) : (
+                                <Select value={newStudent.domain} onValueChange={(val) => {
+                                    if (val === "CUSTOM") setIsCustomDomainCreate(true);
+                                    else setNewStudent({ ...newStudent, domain: val });
+                                }}>
+                                    <SelectTrigger className="glass-input"><SelectValue placeholder="Select Domain" /></SelectTrigger>
+                                    <SelectContent>
+                                        {allDomainOptions.map(d => <SelectItem key={d as string} value={d as string}>{baseDomainLabels[d as string] || (d as string)}</SelectItem>)}
+                                        <SelectItem value="CUSTOM" className="text-primary font-medium">+ Add Custom Domain</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Tier</label>
@@ -173,14 +214,14 @@ export default function AdminStudents() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={handleCloseCreate}>Cancel</Button>
                         <Button onClick={handleCreateStudent} disabled={isCreating}>{isCreating ? "Creating..." : "Create Student"}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Edit Dialog */}
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <Dialog open={editDialogOpen} onOpenChange={(open) => { if (!open) handleCloseEdit(); }}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Edit Student</DialogTitle>
@@ -201,10 +242,28 @@ export default function AdminStudents() {
                             {/* Domain */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Domain</label>
-                                <Select value={editingStudent.domain} onValueChange={(val) => setEditingStudent({ ...editingStudent, domain: val })}>
-                                    <SelectTrigger className="glass-input"><SelectValue placeholder="Select Domain" /></SelectTrigger>
-                                    <SelectContent>{domainOptions.map(d => <SelectItem key={d} value={d}>{domainLabels[d]}</SelectItem>)}</SelectContent>
-                                </Select>
+                                {isCustomDomainEdit ? (
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="Enter custom domain..."
+                                            value={customDomainEditValue}
+                                            onChange={(e) => setCustomDomainEditValue(e.target.value)}
+                                            className="glass-input flex-1"
+                                        />
+                                        <Button type="button" variant="outline" onClick={() => setIsCustomDomainEdit(false)} className="px-3 text-muted-foreground hover:text-foreground">X</Button>
+                                    </div>
+                                ) : (
+                                    <Select value={editingStudent.domain} onValueChange={(val) => {
+                                        if (val === "CUSTOM") setIsCustomDomainEdit(true);
+                                        else setEditingStudent({ ...editingStudent, domain: val });
+                                    }}>
+                                        <SelectTrigger className="glass-input"><SelectValue placeholder="Select Domain" /></SelectTrigger>
+                                        <SelectContent>
+                                            {allDomainOptions.map(d => <SelectItem key={d as string} value={d as string}>{baseDomainLabels[d as string] || (d as string)}</SelectItem>)}
+                                            <SelectItem value="CUSTOM" className="text-primary font-medium">+ Add Custom Domain</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             </div>
                             {/* Tier */}
                             <div className="space-y-2">
@@ -233,7 +292,7 @@ export default function AdminStudents() {
                         </div>
                     )}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={handleCloseEdit}>Cancel</Button>
                         <Button onClick={handleUpdateStudent} disabled={isUpdating}>{isUpdating ? "Saving..." : "Save Changes"}</Button>
                     </DialogFooter>
                 </DialogContent>
