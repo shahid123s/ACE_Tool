@@ -72,9 +72,9 @@ export class GetEnrichedWorklogs implements IUseCase<GetEnrichedWorklogsRequest,
 
         // 3. Collect unique userIds, then fetch matching users in one query
         const uniqueUserIds = [...new Set(result.worklogs.map((w) => w.userId))];
-        const allUsers = await this.userRepository.findAll();
+        const allUsersPayload = await this.userRepository.findAll({ limit: 0 });
         const userMap = new Map(
-            allUsers
+            allUsersPayload.users
                 .filter((u) => uniqueUserIds.includes(u.id))
                 .map((u) => [u.id, u])
         );

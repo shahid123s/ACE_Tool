@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useDeferredValue } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -13,14 +13,27 @@ import { useGetAdminStudentsQuery, useCreateStudentMutation, useUpdateStudentMut
 import { toast } from "sonner";
 
 export default function AdminStudents() {
-    const { data: studentsData } = useGetAdminStudentsQuery({});
+    const [page, setPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState("");
+    const deferredSearchQuery = useDeferredValue(searchQuery);
+    const [domainFilter, setDomainFilter] = useState("all");
+    const [stageFilter, setStageFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    const { data: studentsData } = useGetAdminStudentsQuery({
+        page,
+        limit: 10,
+        search: deferredSearchQuery || undefined,
+        domain: domainFilter === "all" ? undefined : domainFilter,
+        stage: stageFilter === "all" ? undefined : stageFilter,
+        status: statusFilter === "all" ? undefined : statusFilter,
+    });
     const [createStudent, { isLoading: isCreating }] = useCreateStudentMutation();
     const [updateStudent, { isLoading: isUpdating }] = useUpdateStudentMutation();
 
-    const students = Array.isArray(studentsData) ? studentsData : studentsData?.students || [];
-
-    const [searchQuery, setSearchQuery] = useState("");
-    const [domainFilter, setDomainFilter] = useState("all");
+    const students = studentsData?.students || [];
+    const totalPages = studentsData?.totalPages || 1;
+    const totalCount = studentsData?.total || 0;
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingStudent, setEditingStudent] = useState<any>(null);
@@ -34,14 +47,31 @@ export default function AdminStudents() {
     const baseDomainOptions = ["MERN", "MEAN", "Python+Django", "Flutter", "Cybersecurity", "DS", "ML"];
     const baseDomainLabels: Record<string, string> = { "MERN": "MERN Stack", "MEAN": "MEAN Stack", "Python+Django": "Python + Django", "Flutter": "Flutter", "Cybersecurity": "Cybersecurity", "DS": "Data Science", "ML": "Machine Learning" };
 
+    // The dynamicDomains extraction now only operates on CURRENT page's students, 
+    // but we can retain previously seen domains by keeping a broader set globally if needed.
+    // However, since server-side filtering is active, we mostly rely on base domains or typed filters.
     const dynamicDomains = Array.from(new Set(students.map((s: any) => s.domain).filter(Boolean)));
     const allDomainOptions = Array.from(new Set([...baseDomainOptions, ...dynamicDomains]));
 
-    const filteredStudents = students.filter((s: any) => {
-        const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesDomain = domainFilter === "all" || s.domain === domainFilter;
-        return matchesSearch && matchesDomain;
-    });
+    const handleSearchChange = (val: string) => {
+        setSearchQuery(val);
+        setPage(1); // Reset page on new search
+    };
+
+    const handleDomainChange = (val: string) => {
+        setDomainFilter(val);
+        setPage(1); // Reset page on new filter
+    };
+
+    const handleStageChange = (val: string) => {
+        setStageFilter(val);
+        setPage(1);
+    };
+
+    const handleStatusChange = (val: string) => {
+        setStatusFilter(val);
+        setPage(1);
+    };
 
     const handleEditClick = (student: any) => {
         setEditingStudent({ id: student.id, name: student.name, email: student.email, phone: student.phone || "", aceId: student.aceId || "", batch: student.batch || "", domain: student.domain || "", tier: student.tier || "Tier-1", stage: student.stage || "Boarding week", status: student.status || "ongoing" });
@@ -101,19 +131,39 @@ export default function AdminStudents() {
             </div>
 
             <GlassCard>
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    <div className="relative flex-1">
+                <div className="flex flex-col sm:flex-row gap-3 mb-4 flex-wrap">
+                    <div className="relative flex-1 min-w-[200px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 glass-input" />
+                        <Input placeholder="Search students..." value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} className="pl-9 glass-input" />
                     </div>
-                    <Select value={domainFilter} onValueChange={setDomainFilter}>
-                        <SelectTrigger className="w-full sm:w-44 glass-input"><SelectValue placeholder="Domain" /></SelectTrigger>
+                    <Select value={domainFilter} onValueChange={handleDomainChange}>
+                        <SelectTrigger className="w-full sm:w-36 glass-input"><SelectValue placeholder="Domain" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Domains</SelectItem>
                             {allDomainOptions.map(d => <SelectItem key={d as string} value={d as string}>{baseDomainLabels[d as string] || (d as string)}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <Button onClick={() => setCreateDialogOpen(true)}>
+                    <Select value={stageFilter} onValueChange={handleStageChange}>
+                        <SelectTrigger className="w-full sm:w-36 glass-input"><SelectValue placeholder="Stage" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Stages</SelectItem>
+                            <SelectItem value="Boarding week">Boarding week</SelectItem>
+                            <SelectItem value="Learning phase">Learning phase</SelectItem>
+                            <SelectItem value="Project phase">Project phase</SelectItem>
+                            <SelectItem value="Placement phase">Placement phase</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={handleStatusChange}>
+                        <SelectTrigger className="w-full sm:w-36 glass-input"><SelectValue placeholder="Status" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="ongoing">Ongoing</SelectItem>
+                            <SelectItem value="hold">Hold</SelectItem>
+                            <SelectItem value="placed">Placed</SelectItem>
+                            <SelectItem value="dropout">Dropout</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
                         <Plus className="h-4 w-4 mr-1" /> Add Student
                     </Button>
                 </div>
@@ -130,7 +180,7 @@ export default function AdminStudents() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredStudents.map((s: any) => (
+                            {students.map((s: any) => (
                                 <TableRow key={s.id}>
                                     <TableCell>
                                         <div>
@@ -164,6 +214,23 @@ export default function AdminStudents() {
                         </TableBody>
                     </Table>
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 border-t border-border/50 pt-4 px-2">
+                        <span className="text-sm text-muted-foreground">
+                            Page {page} of {totalPages} <span className="hidden sm:inline">({totalCount} total students)</span>
+                        </span>
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
+                                Previous
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </GlassCard>
 
             {/* Create Dialog */}

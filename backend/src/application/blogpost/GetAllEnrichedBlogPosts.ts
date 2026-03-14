@@ -18,9 +18,9 @@ export class GetAllEnrichedBlogPosts implements IUseCase<BlogPostFilters, Enrich
         if (posts.length === 0) return [];
 
         const uniqueUserIds = [...new Set(posts.map((p) => p.userId))];
-        const allUsers = await this.userRepository.findAll();
+        const allUsersPayload = await this.userRepository.findAll({ limit: 0 });
         const userMap = new Map(
-            allUsers
+            allUsersPayload.users
                 .filter((u) => uniqueUserIds.includes(u.id))
                 .map((u) => [u.id, u])
         );

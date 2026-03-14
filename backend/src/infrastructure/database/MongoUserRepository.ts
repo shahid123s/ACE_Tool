@@ -1,5 +1,5 @@
 import { User, UserProps } from '../../domain/user/User.js';
-import { IUserRepository, UserRepository } from '../../domain/user/UserRepository.js';
+import { IUserRepository, UserRepository, UserFilters, PaginatedUsers } from '../../domain/user/UserRepository.js';
 import { UserModel, UserDocument } from './schemas/UserSchema.js';
 
 export class MongoUserRepository extends UserRepository implements IUserRepository {
@@ -30,13 +30,50 @@ export class MongoUserRepository extends UserRepository implements IUserReposito
         return this.mapToDomain(userDoc);
     }
 
-    async findAll(filters?: { role?: string }): Promise<User[]> {
-        const query: Record<string, unknown> = {};
-        if (filters?.role) {
+    async findAll(filters?: UserFilters): Promise<PaginatedUsers> {
+        const query: Record<string, any> = {};
+
+        if (filters?.role && filters.role !== 'all') {
             query.role = filters.role;
         }
-        const userDocs = await UserModel.find(query).sort({ createdAt: -1 }).lean<UserDocument[]>();
-        return userDocs.map((doc) => this.mapToDomain(doc));
+
+        if (filters?.domain && filters.domain !== 'all') {
+            query.domain = filters.domain;
+        }
+
+        if (filters?.stage && filters.stage !== 'all') {
+            query.stage = filters.stage;
+        }
+
+        if (filters?.status && filters.status !== 'all') {
+            query.status = filters.status;
+        }
+
+        if (filters?.search) {
+            query.$or = [
+                { name: { $regex: filters.search, $options: 'i' } },
+                { email: { $regex: filters.search, $options: 'i' } },
+                { aceId: { $regex: filters.search, $options: 'i' } }
+            ];
+        }
+
+        const page = filters?.page || 1;
+        const limit = filters?.limit !== undefined ? filters.limit : 10;
+        const skip = limit > 0 ? (page - 1) * limit : 0;
+
+        const [userDocs, total] = await Promise.all([
+            UserModel.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean<UserDocument[]>(),
+            UserModel.countDocuments(query)
+        ]);
+
+        return {
+            users: userDocs.map((doc) => this.mapToDomain(doc)),
+            total
+        };
     }
 
     async save(user: User): Promise<User> {

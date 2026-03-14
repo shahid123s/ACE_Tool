@@ -51,10 +51,10 @@ const superAdminRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =>
     // Optional: List all admins (role = 'admin')
     fastify.get('/admins', async (request, reply) => {
         try {
-            const admins = await userRepository.findAll({ role: 'admin' });
+            const payload = await userRepository.findAll({ role: 'admin', limit: 0 });
             return reply.send({
                 success: true,
-                data: { admins: admins.map(a => a.toObject()) },
+                data: { admins: payload.users.map(a => a.toObject()) },
             });
         } catch (error: any) {
             return reply.status(500).send({ success: false, message: error.message });

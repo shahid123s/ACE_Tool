@@ -23,9 +23,9 @@ export class GetAllEnrichedReports implements IUseCase<GetAllEnrichedReportsFilt
         if (reports.length === 0) return [];
 
         const uniqueUserIds = [...new Set(reports.map((r) => r.userId))];
-        const allUsers = await this.userRepository.findAll();
+        const allUsersPayload = await this.userRepository.findAll({ limit: 0 });
         const userMap = new Map(
-            allUsers
+            allUsersPayload.users
                 .filter((u) => uniqueUserIds.includes(u.id))
                 .map((u) => [u.id, u])
         );

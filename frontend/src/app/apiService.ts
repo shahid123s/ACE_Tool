@@ -149,12 +149,12 @@ export const apiService = createApi({
             query: () => '/admin/stats',
             transformResponse: (response: ApiResponse<any>) => response.data,
         }),
-        getAdminStudents: builder.query<{ students: User[] }, Record<string, any>>({
+        getAdminStudents: builder.query<{ students: User[], total: number, page: number, limit: number, totalPages: number }, { page?: number, limit?: number, search?: string, domain?: string, stage?: string, status?: string }>({
             query: (params) => ({
                 url: '/admin/students',
-                params,
+                params: params ?? {},
             }),
-            transformResponse: (response: ApiResponse<{ students: User[] }>) => response.data,
+            transformResponse: (response: ApiResponse<{ students: User[], total: number, page: number, limit: number, totalPages: number }>) => response.data,
             providesTags: ['User'],
         }),
         getAdminWorklogs: builder.query<{ worklogs: any[], total: number, page: number, limit: number, totalPages: number }, { userId?: string; status?: string; from?: string; to?: string; page?: number; limit?: number } | void>({

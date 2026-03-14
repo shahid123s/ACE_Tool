@@ -64,14 +64,35 @@ export class AdminController {
      * List students handler
      * GET /api/admin/students
      */
-    async getStudents(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply> {
+    async getStudents(request: FastifyRequest<{ Querystring: { page?: string, limit?: string, search?: string, domain?: string, stage?: string, status?: string } }>, reply: FastifyReply): Promise<FastifyReply> {
         try {
-            const students = await this.userRepository.findAll({ role: 'user' });
-            const studentDTOs = students.map(s => s.toObject());
+            const page = request.query.page ? parseInt(request.query.page) : undefined;
+            const limit = request.query.limit ? parseInt(request.query.limit) : undefined;
+            const search = request.query.search;
+            const domain = request.query.domain;
+            const stage = request.query.stage;
+            const status = request.query.status;
+
+            const result = await this.userRepository.findAll({
+                role: 'user',
+                page,
+                limit,
+                search,
+                domain,
+                stage,
+                status
+            });
+            const studentDTOs = result.users.map(s => s.toObject());
 
             return reply.send({
                 success: true,
-                data: { students: studentDTOs },
+                data: {
+                    students: studentDTOs,
+                    total: result.total,
+                    page: page || 1,
+                    limit: limit || 10,
+                    totalPages: Math.ceil(result.total / (limit || 10))
+                },
             });
         } catch (error: any) {
             request.log.error(error);
